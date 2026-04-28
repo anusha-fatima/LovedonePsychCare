@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useMemo, useEffect, useCallback } from 'react';
+import { useRef, useMemo, useEffect, useCallback, useState } from 'react';
 import { motion, useScroll, useSpring, useTransform } from 'framer-motion';
 
 const KEYWORDS = [
@@ -83,13 +83,19 @@ function getThemeColors() {
     };
   }
 
-  const styles = getComputedStyle(document.documentElement);
-  const primary = styles.getPropertyValue('--primary').trim() || '#003262';
-  const accent = styles.getPropertyValue('--accent').trim() || '#003262';
+  const isDark = document.documentElement.classList.contains('dark');
+  
+  // Light theme colors (dark text)
+  const lightPrimary = { r: 120, g: 137, b: 179 }; // baby-blue-ice-dark
+  const lightAccent = { r: 85, g: 98, b: 127 }; // baby-blue-ice-darker
+  
+  // Dark theme colors (light text)
+  const darkPrimary = { r: 171, g: 196, b: 255 }; // baby-blue-ice
+  const darkAccent = { r: 204, g: 219, b: 253 }; // periwinkle
 
   return {
-    primary: hexToRgb(primary),
-    accent: hexToRgb(accent),
+    primary: isDark ? darkPrimary : lightPrimary,
+    accent: isDark ? darkAccent : lightAccent,
   };
 }
 
@@ -158,6 +164,7 @@ export function KineticTypography() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafRef = useRef<number>(0);
   const progressRef = useRef(0);
+  const [isDark, setIsDark] = useState(false);
 
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -175,6 +182,24 @@ export function KineticTypography() {
   const subOpacity = useTransform(smooth, [0.8, 0.94], [0, 1]);
   const hintOpacity = useTransform(smooth, [0, 0.12], [1, 0]);
   const barWidth = useTransform(smooth, [0, 1], ['0%', '100%']);
+
+  // Watch for theme changes
+  useEffect(() => {
+    const checkTheme = () => {
+      const dark = document.documentElement.classList.contains('dark');
+      setIsDark(dark);
+    };
+    
+    checkTheme();
+    const observer = new MutationObserver(checkTheme);
+    observer.observe(document.documentElement, { attributes: true });
+    window.addEventListener('themeChange', checkTheme);
+    
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('themeChange', checkTheme);
+    };
+  }, []);
 
   const words = useMemo<WordDef[]>(
     () =>
@@ -255,11 +280,24 @@ export function KineticTypography() {
     };
   }, [renderLoop]);
 
+  // Get dynamic text colors based on theme
+  const textColor = isDark ? '#cbd5e1' : '#0f172a';
+  const textColorSecondary = isDark ? '#94a3b8' : '#334155';
+
   return (
     <section
       ref={sectionRef}
       style={{ position: 'relative', width: '100%', height: '250vh' }}
     >
+      
+      {/* <div 
+        className="absolute inset-0 pointer-events-none opacity-isDark ? 30 : 50"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='60' viewBox='0 0 100 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 30 Q25 15 50 30 T100 30' stroke='%23abc4ff' strokeWidth='1.5' fill='none' strokeOpacity='${isDark ? '0.15' : '0.3'}'/%3E%3Cpath d='M0 20 Q25 5 50 20 T100 20' stroke='%23ccdbfd' strokeWidth='1' fill='none' strokeOpacity='${isDark ? '0.1' : '0.2'}'/%3E%3Cpath d='M0 40 Q25 25 50 40 T100 40' stroke='%23c1d3fe' strokeWidth='1' fill='none' strokeOpacity='${isDark ? '0.1' : '0.2'}'/%3E%3C/svg%3E")`,
+          backgroundRepeat: 'repeat',
+          opacity: isDark ? 0.4 : 0.6,
+        }}
+      /> */}
       <div
         style={{
           position: 'sticky',
@@ -267,16 +305,18 @@ export function KineticTypography() {
           height: '100vh',
           width: '100%',
           overflow: 'hidden',
-          background:
-            'linear-gradient(180deg, var(--background) 0%, var(--card) 45%, var(--secondary) 100%)',
+          background: isDark
+            ? 'linear-gradient(180deg, rgb(15,23,42) 0%, rgb(30,41,59) 45%, rgb(30,41,59) 100%)'
+            : 'linear-gradient(180deg, rgb(237,242,251) 0%, rgb(226,234,252) 45%, rgb(215,227,252) 100%)',
         }}
       >
         <div
           style={{
             position: 'absolute',
             inset: 0,
-            background:
-              'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.05))',
+            background: isDark
+              ? 'radial-gradient(circle at 30% 30%, rgba(171,196,255,0.05), transparent)'
+              : 'radial-gradient(circle at 30% 30%, rgba(120,137,179,0.05), transparent)',
           }}
         />
 
@@ -284,8 +324,9 @@ export function KineticTypography() {
           style={{
             position: 'absolute',
             inset: 0,
-            background:
-              'radial-gradient(circle at 70% 70%, rgba(255,255,255,0.03))',
+            background: isDark
+              ? 'radial-gradient(circle at 70% 70%, rgba(204,219,253,0.03), transparent)'
+              : 'radial-gradient(circle at 70% 70%, rgba(85,98,127,0.03), transparent)',
           }}
         />
 
@@ -314,7 +355,7 @@ export function KineticTypography() {
           }}
         >
           <motion.h2
-            style={{ opacity: msgOpacity, y: msgY }}
+            style={{ opacity: msgOpacity, y: msgY, color: textColor }}
             className="kt-heading"
           >
             Your healing journey
@@ -324,7 +365,7 @@ export function KineticTypography() {
 
           <motion.p
             className="kt-sub"
-            style={{ opacity: subOpacity }}
+            style={{ opacity: subOpacity, color: textColorSecondary }}
           >
             Compassion-led support · Built for trust
           </motion.p>
@@ -338,8 +379,9 @@ export function KineticTypography() {
             zIndex: 30,
             height: 3,
             width: barWidth,
-            background:
-              'linear-gradient(90deg, var(--accent), var(--primary), var(--accent))',
+            background: isDark
+              ? 'linear-gradient(90deg, rgb(171,196,255), rgb(204,219,253), rgb(171,196,255))'
+              : 'linear-gradient(90deg, rgb(120,137,179), rgb(85,98,127), rgb(120,137,179))',
           }}
         />
 
@@ -352,6 +394,7 @@ export function KineticTypography() {
             left: '50%',
             transform: 'translateX(-50%)',
             zIndex: 30,
+            color: textColorSecondary,
           }}
         >
           Scroll to explore
@@ -362,10 +405,10 @@ export function KineticTypography() {
             font-family: 'Cormorant Garamond', Georgia, serif;
             font-size: clamp(34px, 5.8vw, 64px);
             font-weight: 300;
-            color: rgba(60, 70, 120, 0.85);
             line-height: 1.12;
             letter-spacing: 0.01em;
             max-width: 760px;
+            transition: color 0.3s ease;
           }
 
           .kt-sub {
@@ -374,7 +417,7 @@ export function KineticTypography() {
             font-size: 12px;
             letter-spacing: 0.24em;
             text-transform: uppercase;
-            color: rgba(60, 70, 120, 0.85);
+            transition: color 0.3s ease;
           }
 
           .kt-hint {
@@ -382,7 +425,7 @@ export function KineticTypography() {
             font-size: 11px;
             letter-spacing: 0.2em;
             text-transform: uppercase;
-            color: rgba(60, 70, 120, 0.85);
+            transition: color 0.3s ease;
           }
         `}</style>
       </div>

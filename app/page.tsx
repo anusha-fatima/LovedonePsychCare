@@ -4,7 +4,7 @@ import Footer from "../components/Footer";
 // import Stats from "@/components/Stats";
 import { KineticTypography } from "@/components/KineticTypography";
 // import HowItWorks from "@/components/HowItWorks";
-import { PsychologistShowcase } from "../components/PsychologistShowcase";
+import { PsychologistShowcase } from "../components/PsychologistsHero";
 // import Testimonials from "@/components/Testimonials";
 import CTASection from "@/components/CTASection";
 import { SolutionsGrid } from '../components/sections/SolutionsGrid';

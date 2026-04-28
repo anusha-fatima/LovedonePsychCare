@@ -1,7 +1,7 @@
 // app/psychologists/page.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -143,23 +143,70 @@ const psychologists = [
     }
 ];
 
-const primaryText = "rgb(var(--periwinkle-3))";
-const secondaryText = "rgba(92, 108, 156, 0.85)";
-const subtleText = "rgba(92, 108, 156, 0.65)";
-const buttonGradient =
-    "linear-gradient(135deg, rgb(var(--periwinkle-3)), rgb(var(--periwinkle-2)), rgb(var(--baby-blue-ice)))";
-
 const specialties = [
     "All", "Anxiety", "Depression", "Trauma", "Relationship Issues",
     "Child Therapy", "Addiction", "OCD", "Stress Management", "Sleep Disorders"
 ];
 
 export default function PsychologistsPage() {
+    const [isDark, setIsDark] = useState(false);
+    const [mounted, setMounted] = useState(false);
     const [selectedSpecialty, setSelectedSpecialty] = useState("All");
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedPsychologist, setSelectedPsychologist] = useState<typeof psychologists[0] | null>(null);
-    const [isSubscribed, setIsSubscribed] = useState(false); // This would come from auth context
+    const [isSubscribed, setIsSubscribed] = useState(false);
     const [showSubscribeModal, setShowSubscribeModal] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+        const checkDarkMode = () => {
+            setIsDark(document.documentElement.classList.contains('dark'));
+        };
+        checkDarkMode();
+        window.addEventListener('themeChange', checkDarkMode);
+        const observer = new MutationObserver(checkDarkMode);
+        observer.observe(document.documentElement, { attributes: true });
+        return () => {
+            window.removeEventListener('themeChange', checkDarkMode);
+            observer.disconnect();
+        };
+    }, []);
+
+    if (!mounted) return null;
+
+    // Light theme colors (Dark text for light background)
+    const lightColors = {
+        textPrimary: '#0f172a', // Dark slate
+        textSecondary: '#334155', // Slate-700
+        textTertiary: '#475569', // Slate-600
+        buttonGradient: 'linear-gradient(135deg, rgb(120,137,179), rgb(100,115,155), rgb(85,98,127))',
+        cardBg: 'rgba(255,255,255,0.7)',
+        cardBorder: '1px solid rgba(171,196,255,0.3)',
+        badgeBg: 'rgba(255,255,255,0.8)',
+        badgeBorder: '1px solid rgba(171,196,255,0.4)',
+        featureBg: 'rgba(120,137,179,0.12)',
+        featureBorder: '1px solid rgba(120,137,179,0.25)',
+        iconBg: 'rgba(120,137,179,0.15)',
+        heroBg: 'linear-gradient(135deg, rgb(237,242,251), rgb(226,234,252))',
+    };
+
+    // Dark theme colors (Light text for dark background)
+    const darkColors = {
+        textPrimary: '#f1f5f9', // Light slate
+        textSecondary: '#cbd5e1', // Slate-300
+        textTertiary: '#94a3b8', // Slate-400
+        buttonGradient: 'linear-gradient(135deg, rgb(171,196,255), rgb(193,211,254), rgb(204,219,253))',
+        cardBg: 'rgba(255,255,255,0.08)',
+        cardBorder: '1px solid rgba(200,220,255,0.15)',
+        badgeBg: 'rgba(15,23,42,0.8)',
+        badgeBorder: '1px solid rgba(200,220,255,0.2)',
+        featureBg: 'rgba(171,196,255,0.12)',
+        featureBorder: '1px solid rgba(171,196,255,0.2)',
+        iconBg: 'rgba(171,196,255,0.15)',
+        heroBg: 'linear-gradient(135deg, rgb(15,23,42), rgb(30,41,59))',
+    };
+
+    const colors = isDark ? darkColors : lightColors;
 
     const filteredPsychologists = psychologists.filter(psych => {
         const matchesSpecialty = selectedSpecialty === "All" ||
@@ -173,7 +220,20 @@ export default function PsychologistsPage() {
         <div className="min-h-screen pt-20">
             {/* Hero Section */}
             <section className="relative overflow-hidden py-20">
-                <div className="absolute inset-0 premium-gradient opacity-5" />
+                <div
+                    className="absolute inset-0 opacity-20"
+                    style={{
+                        background: colors.heroBg,
+                    }}
+                />
+                <div
+                    className="absolute inset-0 opacity-5"
+                    style={{
+                        background: isDark
+                            ? 'radial-gradient(circle at 30% 30%, rgb(171,196,255), transparent)'
+                            : 'radial-gradient(circle at 30% 30%, rgb(120,137,179), transparent)',
+                    }}
+                />
 
                 <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <motion.div
@@ -181,42 +241,52 @@ export default function PsychologistsPage() {
                         animate={{ opacity: 1, y: 0 }}
                         className="text-center max-w-3xl mx-auto"
                     >
-                        <div className="inline-flex items-center space-x-2 px-4 py-2 rounded-full premium-card mb-6">
-                            <Heart className="w-4 h-4" />
-                            <span className="text-sm font-medium" style={{ color: 'rgba(60,70,120,0.85)' }}>
+                        <div
+                            className="inline-flex items-center space-x-2 px-4 py-2 rounded-full mb-6 transition-all duration-300"
+                            style={{
+                                background: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.7)',
+                                border: isDark ? '1px solid rgba(200,220,255,0.2)' : '1px solid rgba(171,196,255,0.3)',
+                                backdropFilter: 'blur(10px)',
+                            }}
+                        >
+                            <Heart className="w-4 h-4" style={{ color: colors.textPrimary }} />
+                            <span className="text-sm font-medium" style={{ color: colors.textPrimary }}>
                                 Expert Mental Health Professionals
                             </span>
                         </div>
 
-                        <h1 className="text-5xl md:text-6xl font-bold mb-6 text-gradient" style={{ color: 'rgba(60,70,120,0.85)' }}>
+                        <h1
+                            className="text-5xl md:text-6xl font-bold mb-6 bg-clip-text text-transparent"
+                            style={{ backgroundImage: colors.buttonGradient }}
+                        >
                             Find Your Perfect Therapist
                         </h1>
 
-                        <p className="text-xl opacity-80 mb-8" style={{ color: 'rgba(60,70,120,0.85)' }}>
+                        <p className="text-xl mb-8 transition-colors duration-300" style={{ color: colors.textSecondary }}>
                             Psychologists committed to good thinking, feeling & doing.
                             Connect with licensed professionals who understand Pakistani culture.
                         </p>
 
                         <div className="flex flex-col sm:flex-row gap-4 justify-center">
                             <div className="relative flex-1 max-w-md">
-                                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 opacity-50" />
+                                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5" style={{ color: colors.textTertiary }} />
                                 <input
                                     type="text"
                                     placeholder="Search by name or specialty..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="w-full pl-12 pr-4 py-3 rounded-full premium-card focus:ring-2 transition-all"
+                                    className="w-full pl-12 pr-4 py-3 rounded-full transition-all duration-300 focus:ring-2 focus:outline-none"
                                     style={{
-                                        backgroundColor: 'rgba(237, 242, 251, 0.08)',
-                                        borderColor: 'rgba(171, 196, 255, 0.2)',
-                                        color: 'rgb(var(--periwinkle-3))'
+                                        backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.7)',
+                                        border: `1px solid ${isDark ? 'rgba(200,220,255,0.2)' : 'rgba(171,196,255,0.3)'}`,
+                                        color: colors.textPrimary,
                                     }}
                                 />
                             </div>
                             <Button
                                 size="lg"
-                                className="text-white shadow-lg hover:scale-105 transition-all duration-300 border-0"
-                                style={{ background: buttonGradient }}
+                                className="shadow-lg hover:scale-105 transition-all duration-300 border-0"
+                                style={{ background: colors.buttonGradient, color: isDark ? '#0f172a' : '#ffffff' }}
                             >
                                 Find Therapist
                                 <ChevronRight className="ml-2 w-5 h-5" />
@@ -234,28 +304,37 @@ export default function PsychologistsPage() {
                             initial={{ opacity: 0, x: -30 }}
                             animate={{ opacity: 1, x: 0 }}
                         >
-                            <h2 className="text-3xl font-bold mb-4 text-gradient">Our values</h2>
-                            <p className="text-lg mb-6 opacity-80" style={{ color: 'rgba(60,70,120,0.85)' }}>
+                            <h2
+                                className="text-3xl font-bold mb-4 bg-clip-text text-transparent"
+                                style={{ backgroundImage: colors.buttonGradient }}
+                            >
+                                Our values
+                            </h2>
+                            <p className="text-lg mb-6 transition-colors duration-300" style={{ color: colors.textSecondary }}>
                                 We are a collaborative team of independent psychologists with a shared mission
                                 to provide good resources and care to:
                             </p>
                             <div className="grid grid-cols-2 gap-3 mb-8">
                                 {["Children", "Teens", "Young Adults", "Parents"].map((group, i) => (
                                     <div key={i} className="flex items-center space-x-2">
-                                        <Users className="w-4 h-4" style={{ color: 'rgba(60,70,120,0.85)' }}/>
-                                        <span style={{ color: 'rgba(60,70,120,0.85)' }}>{group}</span>
+                                        <Users className="w-4 h-4" style={{ color: colors.textPrimary }}/>
+                                        <span style={{ color: colors.textPrimary }}>{group}</span>
                                     </div>
                                 ))}
                             </div>
-                            <div className="p-6 rounded-2xl premium-card">
-                                <h3 className="text-xl font-semibold mb-2" style={{ color: 'rgba(60,70,120,0.85)' }}>
+                            <div
+                                className="p-6 rounded-2xl transition-all duration-300"
+                                style={{
+                                    background: colors.cardBg,
+                                    border: colors.cardBorder,
+                                    backdropFilter: 'blur(10px)',
+                                }}
+                            >
+                                <h3 className="text-xl font-semibold mb-2" style={{ color: colors.textPrimary }}>
                                     OUR PHILOSOPHY IS SIMPLE:
                                 </h3>
-                                <p
-                                    className="opacity-90"
-                                    style={{ color: secondaryText }}
-                                >
-                                    Mental healthcare should be approachable...
+                                <p style={{ color: colors.textSecondary }}>
+                                    Mental healthcare should be approachable, accessible, and designed for you.
                                 </p>
                             </div>
                         </motion.div>
@@ -272,9 +351,17 @@ export default function PsychologistsPage() {
                                     { icon: Clock, text: "Flexible Scheduling" },
                                     { icon: Video, text: "Online Sessions" }
                                 ].map((item, i) => (
-                                    <div key={i} className="p-4 rounded-xl premium-card text-center">
-                                        <item.icon className="w-8 h-8 mx-auto mb-2" style={{ color: 'rgba(60,70,120,0.85)' }} />
-                                        <span className="text-sm" style={{ color: 'rgba(60,70,120,0.85)' }}>{item.text}</span>
+                                    <div
+                                        key={i}
+                                        className="p-4 rounded-xl text-center transition-all duration-300"
+                                        style={{
+                                            background: colors.cardBg,
+                                            border: colors.cardBorder,
+                                            backdropFilter: 'blur(10px)',
+                                        }}
+                                    >
+                                        <item.icon className="w-8 h-8 mx-auto mb-2" style={{ color: colors.textPrimary }} />
+                                        <span className="text-sm" style={{ color: colors.textPrimary }}>{item.text}</span>
                                     </div>
                                 ))}
                             </div>
@@ -291,11 +378,19 @@ export default function PsychologistsPage() {
                             <button
                                 key={specialty}
                                 onClick={() => setSelectedSpecialty(specialty)}
-                                className={`px-5 py-2 rounded-full transition-all duration-300 ${selectedSpecialty === specialty
-                                        ? 'premium-gradient text-white shadow-md'
-                                        : 'premium-card hover:shadow-md'
-                                    }`}
-                                style={{ color: selectedSpecialty === specialty ? 'white' : 'rgba(60,70,120,0.85)' }}
+                                className="px-5 py-2 rounded-full transition-all duration-300"
+                                style={{
+                                    background: selectedSpecialty === specialty
+                                        ? colors.buttonGradient
+                                        : colors.cardBg,
+                                    border: selectedSpecialty === specialty
+                                        ? 'none'
+                                        : colors.cardBorder,
+                                    color: selectedSpecialty === specialty 
+                                        ? (isDark ? '#0f172a' : '#ffffff') 
+                                        : colors.textPrimary,
+                                    backdropFilter: 'blur(10px)',
+                                }}
                             >
                                 {specialty}
                             </button>
@@ -317,11 +412,27 @@ export default function PsychologistsPage() {
                                 onClick={() => setSelectedPsychologist(psych)}
                                 className="cursor-pointer"
                             >
-                                <div className="premium-card rounded-2xl overflow-hidden hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
-                                    <div className="relative h-48 premium-gradient flex items-center justify-center">
+                                <div
+                                    className="rounded-2xl overflow-hidden hover:shadow-2xl transition-all duration-300 hover:-translate-y-2"
+                                    style={{
+                                        background: colors.cardBg,
+                                        border: colors.cardBorder,
+                                        backdropFilter: 'blur(10px)',
+                                    }}
+                                >
+                                    <div
+                                        className="relative h-48 flex items-center justify-center"
+                                        style={{ background: colors.buttonGradient }}
+                                    >
                                         <div className="absolute inset-0 bg-black/20" />
                                         <div className="relative z-10 text-center">
-                                            <div className="w-24 h-24 mx-auto rounded-full rgba(255,255,255,0.2) backdrop-blur-md flex items-center justify-center mb-3">
+                                            <div
+                                                className="w-24 h-24 mx-auto rounded-full flex items-center justify-center mb-3"
+                                                style={{
+                                                    background: 'rgba(255,255,255,0.2)',
+                                                    backdropFilter: 'blur(10px)',
+                                                }}
+                                            >
                                                 <span className="text-4xl font-bold text-white">
                                                     {psych.name.charAt(0)}
                                                 </span>
@@ -329,15 +440,9 @@ export default function PsychologistsPage() {
                                             <h3 className="text-xl font-bold text-white">{psych.name}</h3>
                                             <p className="text-white/90 text-sm">{psych.title}</p>
                                         </div>
-                                        {/* {psych.online && (
-                      <div className="absolute top-4 right-4 bg-green-500 text-white text-xs px-2 py-1 rounded-full flex items-center">
-                        <div className="w-2 h-2 rounded-full bg-white mr-1 animate-pulse" />
-                        Online
-                      </div>
-                    )} */}
                                         {psych.verified && (
                                             <div className="absolute top-4 left-4">
-                                                <CheckCircle className="w-6 h-6" style={{ color: 'rgba(60,70,120,0.85)' }} />
+                                                <CheckCircle className="w-6 h-6 text-white" />
                                             </div>
                                         )}
                                     </div>
@@ -345,15 +450,15 @@ export default function PsychologistsPage() {
                                     <div className="p-5">
                                         <div className="flex items-center justify-between mb-3">
                                             <div className="flex items-center space-x-1">
-                                                <Star className="w-4 h-4 fill-current" style={{ color: 'rgba(60,70,120,0.85)' }} />
-                                                <span className="font-semibold" style={{ color: 'rgba(60,70,120,0.85)' }}>{psych.rating}</span>
-                                                <span className="text-xs opacity-60" style={{ color: 'rgba(60,70,120,0.85)' }}>
+                                                <Star className="w-4 h-4 fill-current" style={{ color: colors.textPrimary }} />
+                                                <span className="font-semibold" style={{ color: colors.textPrimary }}>{psych.rating}</span>
+                                                <span className="text-xs" style={{ color: colors.textTertiary }}>
                                                     ({psych.reviews} reviews)
                                                 </span>
                                             </div>
                                             <div className="flex items-center space-x-1">
-                                                <MapPin className="w-3 h-3 opacity-60" style={{ color: 'rgba(60,70,120,0.85)' }} />
-                                                <span className="text-xs opacity-60" style={{ color: 'rgba(60,70,120,0.85)' }}>
+                                                <MapPin className="w-3 h-3" style={{ color: colors.textTertiary }} />
+                                                <span className="text-xs" style={{ color: colors.textTertiary }}>
                                                     {psych.location}
                                                 </span>
                                             </div>
@@ -363,10 +468,11 @@ export default function PsychologistsPage() {
                                             {psych.specialization.slice(0, 3).map((spec, i) => (
                                                 <span
                                                     key={i}
-                                                    className="text-xs px-2 py-1 rounded-full"
+                                                    className="text-xs px-2 py-1 rounded-full transition-all duration-300"
                                                     style={{
-                                                        backgroundColor: 'rgba(171, 196, 255, 0.15)',
-                                                        color: 'rgba(60,70,120,0.85)'
+                                                        backgroundColor: colors.featureBg,
+                                                        border: colors.featureBorder,
+                                                        color: colors.textSecondary,
                                                     }}
                                                 >
                                                     {spec}
@@ -376,28 +482,31 @@ export default function PsychologistsPage() {
 
                                         <div className="space-y-2 mb-4">
                                             <div className="flex items-center justify-between text-sm">
-                                                <span className="opacity-60" style={{ color: 'rgba(60,70,120,0.85)' }}>Experience</span>
-                                                <span className="font-medium" style={{ color: 'rgba(60,70,120,0.85)' }}>{psych.experience}</span>
+                                                <span style={{ color: colors.textTertiary }}>Experience</span>
+                                                <span className="font-medium" style={{ color: colors.textSecondary }}>{psych.experience}</span>
                                             </div>
                     
                                             <div className="flex items-center justify-between text-sm">
-                                                <span className="opacity-60" style={{ color: 'rgba(60,70,120,0.85)' }}>Languages</span>
-                                                <span className="font-medium" style={{ color: 'rgba(60,70,120,0.85)' }}>{psych.languages.join(", ")}</span>
+                                                <span style={{ color: colors.textTertiary }}>Languages</span>
+                                                <span className="font-medium" style={{ color: colors.textSecondary }}>{psych.languages.join(", ")}</span>
                                             </div>
                                         </div>
 
-                                        <div className="border-t pt-4" style={{ borderColor: 'rgba(171, 196, 255, 0.1)' }}>
+                                        <div
+                                            className="border-t pt-4"
+                                            style={{ borderColor: isDark ? 'rgba(200,220,255,0.1)' : 'rgba(171,196,255,0.15)' }}
+                                        >
                                             <div className="flex items-center justify-between mb-3">
-                                                <span className="text-sm font-semibold" style={{ color: 'rgba(60,70,120,0.85)' }}>
+                                                <span className="text-sm font-semibold" style={{ color: colors.textSecondary }}>
                                                     {psych.price}
                                                 </span>
-                                                <span className="text-xs opacity-60" style={{ color: 'rgba(60,70,120,0.85)' }}>
+                                                <span className="text-xs" style={{ color: colors.textTertiary }}>
                                                     Next: {psych.nextAvailable}
                                                 </span>
                                             </div>
                                             <Button
-                                                className="w-full text-white shadow-md hover:shadow-xl transition-all duration-300"
-                                                style={{ background: buttonGradient }}
+                                                className="w-full shadow-md hover:shadow-xl transition-all duration-300"
+                                                style={{ background: colors.buttonGradient, color: isDark ? '#0f172a' : '#ffffff' }}
                                             >
                                                 View Profile
                                                 <ChevronRight className="ml-2 w-4 h-4" />
@@ -423,7 +532,12 @@ export default function PsychologistsPage() {
                     <motion.div
                         initial={{ scale: 0.9, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
-                        className="max-w-4xl w-full max-h-[90vh] overflow-y-auto rounded-3xl premium-card"
+                        className="max-w-4xl w-full max-h-[90vh] overflow-y-auto rounded-3xl transition-all duration-300"
+                        style={{
+                            background: isDark ? 'rgba(15,23,42,0.95)' : 'rgba(255,255,255,0.95)',
+                            backdropFilter: 'blur(20px)',
+                            border: isDark ? '1px solid rgba(200,220,255,0.15)' : '1px solid rgba(171,196,255,0.25)',
+                        }}
                         onClick={(e) => e.stopPropagation()}
                     >
                         {isSubscribed ? (
@@ -431,12 +545,18 @@ export default function PsychologistsPage() {
                             <div className="p-8">
                                 <div className="flex justify-between items-start mb-6">
                                     <div>
-                                        <h2 className="text-3xl font-bold mb-2 text-gradient">{selectedPsychologist.name}</h2>
-                                        <p className="text-lg opacity-80">{selectedPsychologist.title}</p>
+                                        <h2
+                                            className="text-3xl font-bold mb-2 bg-clip-text text-transparent"
+                                            style={{ backgroundImage: colors.buttonGradient }}
+                                        >
+                                            {selectedPsychologist.name}
+                                        </h2>
+                                        <p className="text-lg" style={{ color: colors.textSecondary }}>{selectedPsychologist.title}</p>
                                     </div>
                                     <button
                                         onClick={() => setSelectedPsychologist(null)}
-                                        className="text-2xl opacity-60 hover:opacity-100"
+                                        className="text-2xl opacity-60 hover:opacity-100 transition-opacity"
+                                        style={{ color: colors.textPrimary }}
                                     >
                                         ×
                                     </button>
@@ -445,20 +565,28 @@ export default function PsychologistsPage() {
                                 <div className="grid md:grid-cols-3 gap-8">
                                     <div className="md:col-span-2 space-y-6">
                                         <div>
-                                            <h3 className="text-xl font-semibold mb-3" style={{ color: 'rgba(60,70,120,0.85)' }}>About</h3>
-                                            <p className="opacity-80 leading-relaxed">{selectedPsychologist.about}</p>
+                                            <h3 className="text-xl font-semibold mb-3" style={{ color: colors.textPrimary }}>About</h3>
+                                            <p className="leading-relaxed" style={{ color: colors.textSecondary }}>{selectedPsychologist.about}</p>
                                         </div>
 
                                         <div>
-                                            <h3 className="text-xl font-semibold mb-3" style={{ color: 'rgba(60,70,120,0.85)' }}>Education</h3>
-                                            <p className="opacity-80">{selectedPsychologist.education}</p>
+                                            <h3 className="text-xl font-semibold mb-3" style={{ color: colors.textPrimary }}>Education</h3>
+                                            <p style={{ color: colors.textSecondary }}>{selectedPsychologist.education}</p>
                                         </div>
 
                                         <div>
-                                            <h3 className="text-xl font-semibold mb-3" style={{ color: 'rgba(60,70,120,0.85)' }}>Specializations</h3>
+                                            <h3 className="text-xl font-semibold mb-3" style={{ color: colors.textPrimary }}>Specializations</h3>
                                             <div className="flex flex-wrap gap-2">
                                                 {selectedPsychologist.specialization.map((spec, i) => (
-                                                    <span key={i} className="px-3 py-1 rounded-full text-sm premium-card">
+                                                    <span
+                                                        key={i}
+                                                        className="px-3 py-1 rounded-full text-sm transition-all duration-300"
+                                                        style={{
+                                                            background: colors.featureBg,
+                                                            border: colors.featureBorder,
+                                                            color: colors.textSecondary,
+                                                        }}
+                                                    >
                                                         {spec}
                                                     </span>
                                                 ))}
@@ -467,35 +595,54 @@ export default function PsychologistsPage() {
                                     </div>
 
                                     <div className="space-y-4">
-                                        <div className="p-4 rounded-xl premium-card">
+                                        <div
+                                            className="p-4 rounded-xl transition-all duration-300"
+                                            style={{
+                                                background: colors.cardBg,
+                                                border: colors.cardBorder,
+                                                backdropFilter: 'blur(10px)',
+                                            }}
+                                        >
                                             <div className="text-center mb-4">
-                                                <div className="text-2xl font-bold text-gradient">{selectedPsychologist.price}</div>
-                                                <p className="text-sm opacity-60">per session</p>
+                                                <div
+                                                    className="text-2xl font-bold bg-clip-text text-transparent"
+                                                    style={{ backgroundImage: colors.buttonGradient }}
+                                                >
+                                                    {selectedPsychologist.price}
+                                                </div>
+                                                <p className="text-sm" style={{ color: colors.textTertiary }}>per session</p>
                                             </div>
-                                            <Button className="w-full premium-gradient text-white mb-3">
+                                            <Button className="w-full mb-3" style={{ background: colors.buttonGradient, color: isDark ? '#0f172a' : '#ffffff' }}>
                                                 <Calendar className="mr-2 w-4 h-4" />
                                                 Book Session
                                             </Button>
-                                            <Button variant="outline" className="w-full">
+                                            <Button variant="outline" className="w-full" style={{ color: colors.textPrimary, borderColor: isDark ? 'rgba(200,220,255,0.2)' : 'rgba(171,196,255,0.3)' }}>
                                                 <MessageCircle className="mr-2 w-4 h-4" />
                                                 Send Message
                                             </Button>
                                         </div>
 
-                                        <div className="p-4 rounded-xl premium-card">
-                                            <h4 className="font-semibold mb-2">Session Info</h4>
+                                        <div
+                                            className="p-4 rounded-xl transition-all duration-300"
+                                            style={{
+                                                background: colors.cardBg,
+                                                border: colors.cardBorder,
+                                                backdropFilter: 'blur(10px)',
+                                            }}
+                                        >
+                                            <h4 className="font-semibold mb-2" style={{ color: colors.textPrimary }}>Session Info</h4>
                                             <div className="space-y-2 text-sm">
                                                 <div className="flex justify-between">
-                                                    <span className="opacity-60">Duration</span>
-                                                    <span>50 minutes</span>
+                                                    <span style={{ color: colors.textTertiary }}>Duration</span>
+                                                    <span style={{ color: colors.textSecondary }}>50 minutes</span>
                                                 </div>
                                                 <div className="flex justify-between">
-                                                    <span className="opacity-60">Next Available</span>
-                                                    <span>{selectedPsychologist.nextAvailable}</span>
+                                                    <span style={{ color: colors.textTertiary }}>Next Available</span>
+                                                    <span style={{ color: colors.textSecondary }}>{selectedPsychologist.nextAvailable}</span>
                                                 </div>
                                                 <div className="flex justify-between">
-                                                    <span className="opacity-60">Languages</span>
-                                                    <span>{selectedPsychologist.languages.join(", ")}</span>
+                                                    <span style={{ color: colors.textTertiary }}>Languages</span>
+                                                    <span style={{ color: colors.textSecondary }}>{selectedPsychologist.languages.join(", ")}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -505,9 +652,14 @@ export default function PsychologistsPage() {
                         ) : (
                             // Subscribe prompt for non-subscribed users
                             <div className="p-12 text-center">
-                                <Lock className="w-16 h-16 mx-auto mb-6" style={{ color: 'rgb(var(--baby-blue-ice))' }} />
-                                <h2 className="text-2xl font-bold mb-4 text-gradient">Subscribe to View Full Profile</h2>
-                                <p className="opacity-80 mb-8 max-w-md mx-auto">
+                                <Lock className="w-16 h-16 mx-auto mb-6" style={{ color: isDark ? 'rgb(171,196,255)' : 'rgb(120,137,179)' }} />
+                                <h2
+                                    className="text-2xl font-bold mb-4 bg-clip-text text-transparent"
+                                    style={{ backgroundImage: colors.buttonGradient }}
+                                >
+                                    Subscribe to View Full Profile
+                                </h2>
+                                <p className="mb-8 max-w-md mx-auto" style={{ color: colors.textSecondary }}>
                                     Get access to detailed therapist profiles, book sessions, and receive personalized mental health support.
                                 </p>
                                 <div className="flex gap-4 justify-center">
@@ -516,13 +668,14 @@ export default function PsychologistsPage() {
                                             setShowSubscribeModal(true);
                                             setSelectedPsychologist(null);
                                         }}
-                                        className="bg-slate-400 texxt-black"
+                                        style={{ background: colors.buttonGradient, color: isDark ? '#0f172a' : '#ffffff' }}
                                     >
                                         Subscribe Now
                                     </Button>
                                     <Button
                                         variant="outline"
                                         onClick={() => setSelectedPsychologist(null)}
+                                        style={{ color: colors.textPrimary, borderColor: isDark ? 'rgba(200,220,255,0.2)' : 'rgba(171,196,255,0.3)' }}
                                     >
                                         Maybe Later
                                     </Button>
@@ -533,93 +686,36 @@ export default function PsychologistsPage() {
                 </motion.div>
             )}
 
-            {/* Subscribe Modal */}
-            {showSubscribeModal && (
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-                    onClick={() => setShowSubscribeModal(false)}
-                >
-                    <motion.div
-                        initial={{ scale: 0.9, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        className="max-w-md w-full rounded-2xl premium-card p-8"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <div className="text-center">
-                            <Sparkles className="w-12 h-12 mx-auto mb-4" style={{ color: 'rgb(var(--baby-blue-ice))' }} />
-                            <h2 className="text-2xl font-bold mb-4 text-gradient">Choose Your Plan</h2>
-
-                            <div className="space-y-4 mb-8">
-                                <div
-                                    className="p-5 rounded-2xl border transition-all hover:shadow-xl"
-                                    style={{
-                                        background: "rgba(255,255,255,0.7)",
-                                        borderColor: "rgba(171,196,255,0.2)"
-                                    }}
-                                >
-                                    <div className="flex justify-between items-center mb-2">
-                                        <h3 style={{ color: primaryText }} className="font-semibold text-lg">
-                                            Monthly Plan
-                                        </h3>
-                                        <span className="text-2xl font-bold" style={{ color: primaryText }}>
-                                            Rs. 999
-                                        </span>
-                                    </div>
-                                    <p className="text-sm" style={{ color: subtleText }}>
-                                        Flexible monthly billing
-                                    </p>
-                                </div>
-
-                                <div
-                                    className="p-5 rounded-2xl shadow-xl text-white"
-                                    style={{ background: buttonGradient }}
-                                >
-                                    <div className="flex justify-between items-center mb-2">
-                                        <h3 className="font-semibold text-lg">Yearly Plan</h3>
-                                        <span className="text-2xl font-bold">Rs. 9,999</span>
-                                    </div>
-                                    <p className="text-sm text-white/90">
-                                        Save 16% • 2 months free
-                                    </p>
-                                </div>
-                            </div>
-
-                            <Button
-                                className="w-full text-white shadow-xl hover:scale-105 transition-all"
-                                style={{ background: buttonGradient }}
-                            >
-                                Start Free Trial (7 days)
-                            </Button>
-                            <p className="text-xs opacity-60">No commitment. Cancel anytime.</p>
-                        </div>
-                    </motion.div>
-                </motion.div>
-            )}
-
             {/* CTA Section */}
             <section className="py-20">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <motion.div
                         initial={{ opacity: 0, y: 30 }}
                         whileInView={{ opacity: 1, y: 0 }}
-                        className="premium-card rounded-3xl p-12 text-center relative overflow-hidden"
+                        className="rounded-3xl p-12 text-center relative overflow-hidden transition-all duration-300"
+                        style={{
+                            background: colors.cardBg,
+                            border: colors.cardBorder,
+                            backdropFilter: 'blur(20px)',
+                        }}
                     >
-                        <div className="absolute inset-0 premium-gradient opacity-10" />
+                        <div className="absolute inset-0 opacity-10" style={{ background: colors.buttonGradient }} />
                         <div className="relative z-10">
-                            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gradient" style={{ color: 'rgba(60,70,120,0.85)' }}>
+                            <h2
+                                className="text-3xl md:text-4xl font-bold mb-4 bg-clip-text text-transparent"
+                                style={{ backgroundImage: colors.buttonGradient }}
+                            >
                                 Ready to Start Your Journey?
                             </h2>
-                            <p className="text-lg opacity-80 mb-8 max-w-2xl mx-auto" style={{ color: 'rgba(60,70,120,0.85)' }}>
+                            <p className="text-lg mb-8 max-w-2xl mx-auto" style={{ color: colors.textSecondary }}>
                                 Take the first step toward better mental health. Book a session with one of our expert psychologists today.
                             </p>
                             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                                <Button size="lg" style={{ color: 'rgba(60,70,120,0.85)', background: buttonGradient  }}>
+                                <Button size="lg" style={{ background: colors.buttonGradient, color: isDark ? '#0f172a' : '#ffffff' }}>
                                     Book Appointment
                                     <Calendar className="ml-2 w-5 h-5" />
                                 </Button>
-                                <Button size="lg" variant="outline" style={{ color: 'rgba(60,70,120,0.85)', background: buttonGradient  }}>
+                                <Button size="lg" variant="outline" style={{ color: colors.textPrimary, borderColor: isDark ? 'rgba(200,220,255,0.2)' : 'rgba(171,196,255,0.3)' }}>
                                     <MessageCircle className="mr-2 w-5 h-5" />
                                     Chat with Support
                                 </Button>

@@ -22,33 +22,51 @@ export function useTheme() {
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>("light");
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const savedTheme = localStorage.getItem("theme") as Theme | null;
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
     
+    // Force light mode as default - ignore system preference
     if (savedTheme) {
       setTheme(savedTheme);
-    } else if (prefersDark) {
-      setTheme("dark");
+    } else {
+      // Always default to light mode
+      setTheme("light");
+      localStorage.setItem("theme", "light");
     }
   }, []);
 
   useEffect(() => {
+    if (!mounted) return;
+    
     const root = document.documentElement;
+    const body = document.body;
+    
     if (theme === "dark") {
       root.classList.add("dark");
-      document.body.classList.add("dark-mode");
+      body.classList.add("dark");
+      body.classList.remove("light-mode");
     } else {
       root.classList.remove("dark");
-      document.body.classList.remove("dark-mode");
+      body.classList.remove("dark");
+      body.classList.add("light-mode");
     }
     localStorage.setItem("theme", theme);
-  }, [theme]);
+    
+    // Dispatch custom event for components listening to theme changes
+    window.dispatchEvent(new CustomEvent("themeChange", { detail: { theme } }));
+  }, [theme, mounted]);
 
   const toggleTheme = () => {
     setTheme(prev => prev === "light" ? "dark" : "light");
   };
+
+  // Prevent flash of wrong theme
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>
