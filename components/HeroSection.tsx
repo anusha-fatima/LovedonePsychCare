@@ -1,9 +1,10 @@
+// components/sections/HeroSection.tsx
 'use client';
 
 import { useRef, useState, useEffect } from 'react';
 import Link from 'next/link';
-import { motion, useScroll, useTransform } from 'framer-motion';
-import { Play, ArrowRight, Shield, Users, Sparkles, Heart, Clock, Quote } from 'lucide-react';
+import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
+import { ArrowRight, Mic, Heart, Sparkles, Volume2 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import Image from "next/image";
 
@@ -19,6 +20,7 @@ export const HeroSection = () => {
 
   const [isDark, setIsDark] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     setMounted(true);
@@ -29,67 +31,64 @@ export const HeroSection = () => {
     window.addEventListener('themeChange', checkDarkMode);
     const observer = new MutationObserver(checkDarkMode);
     observer.observe(document.documentElement, { attributes: true });
+
+    // Simulate loading complete after 3 seconds
+    const timer = setTimeout(() => setIsLoading(false), 3000);
+
     return () => {
       window.removeEventListener('themeChange', checkDarkMode);
       observer.disconnect();
+      clearTimeout(timer);
     };
   }, []);
 
   if (!mounted) return null;
 
-  // Light theme - Dark text colors
-  const lightHeadingColor = '#0f172a'; // Slate-900 - Dark for contrast
-  const lightSubColor = '#334155'; // Slate-700
-  const lightTextColor = '#475569'; // Slate-600
-  const lightCardBg = 'rgba(255,255,255,0.7)';
-  const lightCardBorder = '1px solid rgba(171,196,255,0.3)';
-  const lightQuoteColor = 'rgb(85, 98, 127)'; // baby-blue-ice-darker
-  const lightFloatingBg = 'rgba(255,255,255,0.95)';
-  const lightFloatingBorder = '1px solid rgba(171,196,255,0.4)';
-  const lightGradientText = 'linear-gradient(135deg, rgb(120,137,179), rgb(85,98,127))'; 
-  const lightButtonGradient = 'linear-gradient(135deg, rgb(120,137,179), rgb(85,98,127))';
-  const lightPlayBg = 'rgba(255,255,255,0.9)';
-  const lightPlayBorder = '1px solid rgba(120,137,179,0.3)';
+  const lightColors = {
+    headingColor: '#0f172a', // Dark slate
+    subColor: '#334155', // Slate-700
+    textColor: '#475569', // Slate-600
+    buttonGradient: 'linear-gradient(135deg, rgb(120,137,179), rgb(100,115,155), rgb(85,98,127))',
+    voiceButtonBg: 'rgba(120,137,179,0.12)',
+    voiceButtonBorder: '1px solid rgba(120,137,179,0.3)',
+    voiceButtonText: '#334155',
+    cardBg: 'rgba(255,255,255,0.6)',
+    cardBorder: '1px solid rgba(120,137,179,0.2)',
+    micColor: 'rgb(120,137,179)',
+    dotColor: 'rgb(120,137,179)',
+    scrollBg: 'rgba(255,255,255,0.4)',
+    scrollBorder: '1px solid rgba(120,137,179,0.2)',
+  };
 
-  // Dark theme - Light text colors
-  const darkHeadingColor = '#f1f5f9'; // Slate-100
-  const darkSubColor = '#cbd5e1'; // Slate-300
-  const darkTextColor = '#94a3b8'; // Slate-400
-  const darkCardBg = 'rgba(255,255,255,0.08)';
-  const darkCardBorder = '1px solid rgba(200,220,255,0.15)';
-  const darkQuoteColor = 'rgb(200,220,255)';
-  const darkFloatingBg = 'rgba(15,23,42,0.9)';
-  const darkFloatingBorder = '1px solid rgba(200,220,255,0.2)';
-  const darkGradientText = 'linear-gradient(135deg, rgb(200,220,255), rgb(171,196,255))';
-  const darkButtonGradient = 'linear-gradient(135deg, rgb(171,196,255), rgb(204,219,253))';
-  const darkPlayBg = 'rgba(255,255,255,0.1)';
-  const darkPlayBorder = '1px solid rgba(200,220,255,0.3)';
+  
+  const darkColors = {
+    headingColor: '#f1f5f9', // Light slate
+    subColor: '#cbd5e1', // Slate-300
+    textColor: '#94a3b8', // Slate-400
+    buttonGradient: 'linear-gradient(135deg, rgb(171,196,255), rgb(193,211,254), rgb(204,219,253))',
+    voiceButtonBg: 'rgba(171,196,255,0.12)',
+    voiceButtonBorder: '1px solid rgba(171,196,255,0.3)',
+    voiceButtonText: '#cbd5e1',
+    cardBg: 'rgba(255,255,255,0.08)',
+    cardBorder: '1px solid rgba(171,196,255,0.15)',
+    micColor: 'rgb(171,196,255)',
+    dotColor: 'rgb(171,196,255)',
+    scrollBg: 'rgba(255,255,255,0.1)',
+    scrollBorder: '1px solid rgba(171,196,255,0.2)',
+  };
 
-  // Select based on theme
-  const headingColor = isDark ? darkHeadingColor : lightHeadingColor;
-  const subColor = isDark ? darkSubColor : lightSubColor;
-  const textColor = isDark ? darkTextColor : lightTextColor;
-  const cardBg = isDark ? darkCardBg : lightCardBg;
-  const cardBorder = isDark ? darkCardBorder : lightCardBorder;
-  const quoteColor = isDark ? darkQuoteColor : lightQuoteColor;
-  const floatingBg = isDark ? darkFloatingBg : lightFloatingBg;
-  const floatingBorder = isDark ? darkFloatingBorder : lightFloatingBorder;
-  const gradientText = isDark ? darkGradientText : lightGradientText;
-  const buttonGradient = isDark ? darkButtonGradient : lightButtonGradient;
-  const playBg = isDark ? darkPlayBg : lightPlayBg;
-  const playBorder = isDark ? darkPlayBorder : lightPlayBorder;
+  const colors = isDark ? darkColors : lightColors;
 
   return (
-    <section
-      ref={containerRef}
-      className="relative min-h-screen overflow-visible pt-40 md:pt-48 pb-24 md:pb-28"
-      style={{
-        background: isDark
-          ? 'linear-gradient(180deg, rgb(15,23,42) 0%, rgb(30,41,59) 100%)'
-          : 'linear-gradient(180deg, rgb(237,242,251) 0%, rgb(226,234,252) 100%)', 
-      }}
-    >
-      {/* Fixed Background Elements - No movement */}
+  <section
+  ref={containerRef}
+ className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center flex flex-col items-center justify-center min-h-[70vh]"
+  style={{
+    paddingTop: '145px', 
+    paddingBottom: '45px', 
+  }}
+>
+      {/* Fixed Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div
           className="absolute inset-0 opacity-5"
@@ -100,7 +99,7 @@ export const HeroSection = () => {
           }}
         />
         
-        {/* Static Blobs - No animation */}
+        {/* Static Blobs */}
         <div
           className="absolute top-20 right-10 w-96 h-96 rounded-full"
           style={{
@@ -129,242 +128,242 @@ export const HeroSection = () => {
         />
       </div>
 
-      {/* Content */}
-      <div className="relative z-10 max-w-7xl mx-auto px-6 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-          {/* LEFT CONTENT */}
+     {/* Loading Screen */}
+      <AnimatePresence>
+        {isLoading && (
           <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6 }}
+            key="loading"
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 z-50 flex items-center justify-center"
+            style={{
+              background: isDark
+                ? 'linear-gradient(180deg, rgb(15,23,42) 0%, rgb(30,41,59) 100%)'
+                : 'linear-gradient(135deg, rgb(171,196,255) 0%, rgb(182,204,254) 50%, rgb(193,211,254) 100%)',
+            }}
           >
-          
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold leading-tight mb-6"
-            >
-              <span
-                className="bg-clip-text text-transparent"
-                style={{ backgroundImage: gradientText }}
-              >
-                Mental Health Care,
-              </span>
-              <br />
-              <span style={{ color: headingColor }}>Rooted in Pakistan</span>
-            </motion.h1>
-
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="text-lg md:text-xl mb-10 leading-relaxed"
-              style={{ color: subColor }}
-            >
-              Your mind matters. We are here to help with culturally-aware,
-              confidential support, wherever you are in Pakistan.
-            </motion.p>
-
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="flex flex-col sm:flex-row items-start sm:items-center gap-5 mb-12"
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              className="flex flex-col items-center justify-center"
             >
-              <Link href="/booking">
-                <Button
-                  size="lg"
-                  className="shadow-xl hover:shadow-2xl transition-all duration-300 group text-white border-0"
-                  style={{
-                    background: buttonGradient,
-                  }}
-                >
-                  <Sparkles className="w-4 h-4 mr-2" />
-                  Start Free Assessment
-                  <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </Link>
-
-              <button
-                className="flex items-center space-x-3 transition-all duration-300 group"
-                style={{ color: isDark ? 'rgb(200,220,255)' : 'rgb(var(--periwinkle-3))' }}
+              {/* Animated Logo Container */}
+              <motion.div
+                animate={{ scale: [1, 1.05, 1] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                className="relative w-48 h-48 md:w-56 md:h-56 mb-8"
               >
-                <span 
-                  className="w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 group-hover:scale-105"
-                  style={{
-                    background: playBg,
-                    backdropFilter: 'blur(10px)',
-                    border: playBorder,
-                  }}
-                >
-                  <Play className="w-4 h-4 ml-0.5" style={{ color: isDark ? 'rgb(200,220,255)' : 'rgb(var(--periwinkle-3))' }} />
-                </span>
-                <span className="text-sm font-medium">Watch Our Story</span>
-              </button>
-            </motion.div>
-
-          
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-              className="flex flex-wrap items-center gap-6"
-            >
-              <div className="flex items-center space-x-2">
-                <Shield className="w-5 h-5" style={{ color: isDark ? 'rgb(200,220,255)' : 'rgb(var(--periwinkle-3))' }} />
-                <span className="text-sm" style={{ color: textColor }}>Verified Therapists</span>
-              </div>
+                <Image
+                  src="/logo.png"
+                  alt="LovedOne PsyCare Logo"
+                  fill
+                  className="object-contain drop-shadow-2xl"
+                  priority
+                />
+              </motion.div>
+ 
+              {/* Loading Text */}
+              <motion.p
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3, duration: 0.6 }}
+                className="text-center text-lg md:text-xl font-light tracking-wide"
+                style={{ color: isDark ? 'rgb(200,220,255)' : 'rgba(60,70,120,0.7)' }}
+              >
+                Welcome to LovedOne PsyCare
+              </motion.p>
+ 
+              {/* Animated Loading Dots */}
+              <motion.div
+                className="flex gap-2 mt-6"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.3 }}
+              >
+                {[0, 1, 2].map((i) => (
+                  <motion.div
+                    key={i}
+                    className="w-2 h-2 rounded-full"
+                    style={{
+                      background: isDark ? 'rgb(150,170,220)' : 'rgb(var(--baby-blue-ice))',
+                    }}
+                    animate={{ y: [0, -8, 0] }}
+                    transition={{
+                      duration: 0.3,
+                      repeat: Infinity,
+                      delay: i * 0.2,
+                    }}
+                  />
+                ))}
+              </motion.div>
             </motion.div>
           </motion.div>
+        )}
+      </AnimatePresence>
 
-          
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="relative hidden lg:block"
+      {/* Content - Centered Layout */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: isLoading ? 0 : 1 }}
+        transition={{ duration: 0.8, delay: 0.2 }}
+        className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center"
+      >
+        {/* Main Heading - Warm & Gentle */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: isLoading ? 0 : 1, y: isLoading ? 20 : 0 }}
+          transition={{ delay: 0.6, duration: 0.8 }}
+          className="mb-6"
+        >
+          <h1
+            className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-light leading-tight mb-4 transition-colors duration-300"
+            style={{ color: colors.headingColor, letterSpacing: '-0.02em' }}
           >
-            {/* Main Card */}
-            <div 
-              className="relative rounded-3xl overflow-hidden shadow-2xl aspect-[4/5]"
+            <span className="font-normal">When you need</span>
+            <br />
+            <span 
+              className="font-semibold bg-clip-text text-transparent transition-all duration-300"
               style={{
-                background: cardBg,
-                backdropFilter: 'blur(10px)',
-                border: cardBorder,
+                backgroundImage: isDark
+                  ? 'linear-gradient(135deg, rgb(200,220,255), rgb(150,170,220))'
+                  : 'linear-gradient(135deg, rgb(120,137,179), rgb(85,98,127))',
               }}
             >
-             
-              <div className="absolute inset-0 flex flex-col items-center justify-center p-8">
-                <motion.div
-                  animate={{ 
-                    scale: [1, 1.02, 1],
-                  }}
-                  transition={{ 
-                    duration: 4, 
-                    repeat: Infinity,
-                    ease: "easeInOut"
-                  }}
-                  className="relative w-44 h-44 md:w-52 md:h-52 mb-8"
-                >
-                  <Image
-                    src="/logo.png"
-                    alt="LovedOne PsyCare Logo"
-                    fill
-                    className="object-contain"
-                    priority
-                  />
-                </motion.div>
+              someone to listen
+            </span>
+          </h1>
+        </motion.div>
 
-                {/* Quote Container */}
-                <div className="text-center max-w-sm">
-                  <div className="flex justify-center mb-4">
-                    <Quote className="w-10 h-10" style={{ color: isDark ? 'rgb(150,170,220)' : 'rgb(var(--baby-blue-ice))' }} />
-                  </div>
-                  
-                  <h3 
-                    className="text-xl md:text-2xl lg:text-3xl font-bold leading-tight mb-3"
-                    style={{ 
-                      color: quoteColor,
-                      fontFamily: '"Cormorant Garamond", "Playfair Display", Georgia, serif'
-                    }}
-                  >
-                    "You can't see people's mental health so be kind"
-                  </h3>
-                  
-                  <div className="flex items-center justify-center gap-2 mt-4">
-                    <Heart className="w-4 h-4 fill-current" style={{ color: isDark ? 'rgb(150,170,220)' : 'rgb(var(--baby-blue-ice))' }} />
-                    <span className="text-xs" style={{ color: isDark ? 'rgba(226,232,240,0.6)' : 'rgba(60,70,120,0.6)' }}>Always remember</span>
-                    <Heart className="w-4 h-4 fill-current" style={{ color: isDark ? 'rgb(150,170,220)' : 'rgb(var(--baby-blue-ice))' }} />
-                  </div>
-                </div>
+        {/* Subheading - Warm & Welcoming */}
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: isLoading ? 0 : 1, y: isLoading ? 20 : 0 }}
+          transition={{ delay: 0.8, duration: 0.8 }}
+          className="text-base md:text-lg mb-8 max-w-2xl mx-auto leading-relaxed font-light transition-colors duration-300"
+          style={{ color: colors.textColor }}
+        >
+          Compassionate support from licensed psychologists. Talk about what matters. 
+          <span className="block mt-2">Connect at your own pace, in your own language.</span>
+        </motion.p>
+
+        {/* CTA Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: isLoading ? 0 : 1, y: isLoading ? 20 : 0 }}
+          transition={{ delay: 1.0, duration: 0.8 }}
+          className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12"
+        >
+          {/* Main CTA Button */}
+          <Link href="/booking">
+            <Button
+              size="lg"
+              className="shadow-xl hover:shadow-2xl transition-all duration-300 group border-0"
+              style={{
+                background: colors.buttonGradient,
+                color: isDark ? '#0f172a' : '#ffffff',
+              }}
+            >
+              <Heart className="w-5 h-5 mr-2" style={{ color: isDark ? '#0f172a' : '#ffffff' }} />
+              Start Your Journey
+              <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            </Button>
+          </Link>
+
+          {/* Voice Feature Button - Highlighted */}
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <button
+              className="px-6 py-3 rounded-full flex items-center gap-2 transition-all duration-300 border font-semibold group"
+              style={{
+                background: colors.voiceButtonBg,
+                borderColor: isDark ? 'rgba(171,196,255,0.3)' : 'rgba(120,137,179,0.3)',
+                color: colors.voiceButtonText,
+              }}
+            >
+              <motion.div
+                animate={{ scale: [1, 1.1, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                <Volume2 className="w-5 h-5" style={{ color: colors.micColor }} />
+              </motion.div>
+              <span>Voice Cloning Feature</span>
+              <Sparkles className="w-4 h-4 opacity-60 group-hover:opacity-100 transition-opacity" />
+            </button>
+          </motion.div>
+        </motion.div>
+
+        {/* Trust Indicators - Soft & Gentle */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: isLoading ? 0 : 1, y: isLoading ? 20 : 0 }}
+          transition={{ delay: 1.2, duration: 0.8 }}
+          className="flex flex-wrap justify-center items-center gap-6 md:gap-10 text-sm md:text-base"
+        >
+          <div className="flex items-center gap-2">
+            <div
+              className="w-2 h-2 rounded-full"
+              style={{ background: colors.dotColor }}
+            />
+            <span className="transition-colors duration-300" style={{ color: colors.textColor }}>Licensed Therapists</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div
+              className="w-2 h-2 rounded-full"
+              style={{ background: colors.dotColor }}
+            />
+            <span className="transition-colors duration-300" style={{ color: colors.textColor }}>100% Confidential</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div
+              className="w-2 h-2 rounded-full"
+              style={{ background: colors.dotColor }}
+            />
+            <span className="transition-colors duration-300" style={{ color: colors.textColor }}>Available 24/7</span>
+          </div>
+        </motion.div>
+
+        {/* Voice Feature Highlight Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: isLoading ? 0 : 1, y: isLoading ? 30 : 0 }}
+          transition={{ delay: 1.4, duration: 0.8 }}
+          className="mt-12 md:mt-16"
+        >
+          <div
+            className="rounded-2xl p-6 md:p-8 backdrop-blur-md transition-all duration-300"
+            style={{
+              background: colors.cardBg,
+              border: colors.cardBorder,
+            }}
+          >
+            <div className="flex items-start gap-4 mb-4 text-left">
+              <motion.div
+                animate={{ scale: [1, 1.1, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                <Mic
+                  className="w-6 h-6 shrink-0 mt-1"
+                  style={{ color: colors.micColor }}
+                />
+              </motion.div>
+              <div>
+                <h3
+                  className="text-lg md:text-xl font-semibold mb-2 transition-colors duration-300"
+                  style={{ color: colors.headingColor }}
+                >
+                  Voice Cloning: Hear From Someone You Love
+                </h3>
+                <p className="text-sm md:text-base transition-colors duration-300" style={{ color: colors.textColor }}>
+                  Experience AI-powered voice support that sounds like someone you trust. 
+                  A unique feature designed to make therapy feel more personal and comforting.
+                </p>
               </div>
             </div>
-
-            {/* Floating Card 1 - Client Satisfaction */}
-            <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.6, duration: 0.5 }}
-              className="absolute -top-6 -left-6 rounded-2xl px-4 py-3 shadow-xl"
-              style={{
-                background: floatingBg,
-                backdropFilter: 'blur(10px)',
-                border: floatingBorder,
-              }}
-            >
-              <div className="flex items-center space-x-3">
-                <div
-                  className="w-10 h-10 rounded-full flex items-center justify-center"
-                  style={{
-                    background: isDark
-                      ? 'linear-gradient(135deg, rgb(120,137,179), rgb(100,115,155))'
-                      : 'linear-gradient(135deg, rgb(var(--periwinkle-3)), rgb(var(--baby-blue-ice)))',
-                  }}
-                >
-                  <Users className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <p className="text-2xl font-semibold" style={{ color: isDark ? 'rgb(200,220,255)' : 'rgb(var(--periwinkle-3))' }}>Verified</p>
-                  <p className="text-xs" style={{ color: isDark ? 'rgba(226,232,240,0.7)' : 'rgba(60,70,120,0.7)' }}>Therapists</p>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Floating Card 2 - 24/7 Support */}
-            <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.7, duration: 0.5 }}
-              className="absolute -bottom-6 -right-6 rounded-2xl px-4 py-3 shadow-xl"
-              style={{
-                background: floatingBg,
-                backdropFilter: 'blur(10px)',
-                border: floatingBorder,
-              }}
-            >
-              <div className="flex items-center space-x-3">
-                <div
-                  className="w-10 h-10 rounded-full flex items-center justify-center"
-                  style={{
-                    background: isDark
-                      ? 'linear-gradient(135deg, rgb(120,137,179), rgb(100,115,155))'
-                      : 'linear-gradient(135deg, rgb(var(--periwinkle-3)), rgb(var(--baby-blue-ice)))',
-                  }}
-                >
-                  <Clock className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold" style={{ color: isDark ? 'rgb(200,220,255)' : 'rgb(var(--periwinkle-3))' }}>24/7</p>
-                  <p className="text-xs" style={{ color: isDark ? 'rgba(226,232,240,0.7)' : 'rgba(60,70,120,0.7)' }}>AI Support Available</p>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        </div>
-      </div>
-
-      {/* Scroll Indicator */}
-      <motion.div
-        style={{ opacity }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2"
-      >
-        <motion.div
-          animate={{ y: [0, 8, 0] }}
-          transition={{ duration: 1.5, repeat: Infinity }}
-          className="w-6 h-10 rounded-full flex justify-center p-1"
-          style={{
-            background: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.3)',
-            backdropFilter: 'blur(5px)',
-            border: isDark ? '1px solid rgba(200,220,255,0.2)' : '1px solid rgba(171,196,255,0.3)',
-          }}
-        >
-          <motion.div
-            animate={{ height: [3, 10, 3] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
-            className="w-1 rounded-full"
-            style={{ backgroundColor: isDark ? 'rgb(150,170,220)' : 'rgb(var(--baby-blue-ice))' }}
-          />
+          </div>
         </motion.div>
       </motion.div>
     </section>
