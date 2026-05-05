@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import localFont from "next/font/local";
 import { FloatingNav } from "../components/FloatingNav";
-import Footer from "../components/Footer";
 import CursorGlow from "../components/CursorGlow";
 import { LanguageProvider } from "../context/LanguageContext";
 import "./globals.css";

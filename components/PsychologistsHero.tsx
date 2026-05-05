@@ -227,64 +227,6 @@ export const PsychologistShowcase = () => {
           </div>
         </motion.div>
         
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.8, delay: 0.5 }}
-          className="relative rounded-3xl overflow-hidden shadow-2xl mb-16"
-        >
-          <div className="absolute inset-0" style={{ background: gradientPrimary, opacity: 0.9 }} />
-          <div 
-            className="absolute inset-0 opacity-10" 
-            style={{
-              backgroundImage: `url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fillRule='evenodd'%3E%3Cg fill='%23ffffff' fillOpacity='0.1'%3E%3Cpath d='M40 20v-8h-4v8h-8v4h8v8h4v-8h8v-4h-8zM40 60v-8h-4v8h-8v4h8v8h4v-8h8v-4h-8zM0 40v-8H-8v8H0v8h4v-8h8v-4H0zM80 40v-8h-8v8h8v8h4v-8h8v-4h-8z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
-            }}
-          />
-          
-          <div className="relative p-12 text-center">
-            <Heart className="w-16 h-16 mx-auto mb-6 text-white opacity-90" />
-            <h3 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              Find Your Perfect Match
-            </h3>
-            <p className="text-white/90 text-lg mb-8 max-w-2xl mx-auto">
-              Answer a few questions and we'll match you with the psychologist best suited to your needs.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/psychologists">
-                <Button
-                  size="lg"
-                  className="group shadow-xl hover:shadow-2xl transition-all duration-300"
-                  style={{
-                    background: 'rgba(15, 23, 42, 0.9)',
-                    color: 'white',
-                    border: '1px solid rgba(255,255,255,0.2)',
-                  }}
-                >
-                  Browse All Psychologists
-                  <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </Link>
-              
-              <Link href="/booking">
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="transition-all duration-300 hover:scale-105"
-                  style={{
-                    background: 'rgba(255,255,255,0.15)',
-                    border: '1px solid white',
-                    color: 'white',
-                  }}
-                >
-                  <Calendar className="mr-2 w-4 h-4" />
-                  Book Free Consultation
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </motion.div>
-
         {/* Trust Indicators */}
         <motion.div
           initial={{ opacity: 0 }}

@@ -22,14 +22,34 @@ export const FloatingNav = () => {
   const [language, setLanguage] = useState<"en" | "ur">("en");
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [mounted, setMounted] = useState(false);
+  const [lastScrollY, setLastScrollY] = useState(0);
+  const [isNavVisible, setIsNavVisible] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
     setMounted(true);
-    const handleScroll = () => setIsScrolled(window.scrollY > 20);
+    
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      // Update scrolled state for background changes
+      setIsScrolled(currentScrollY > 20);
+      
+      // Hide/show nav based on scroll direction
+      if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        // Scrolling down - hide nav
+        setIsNavVisible(false);
+      } else if (currentScrollY < lastScrollY) {
+        // Scrolling up - show nav
+        setIsNavVisible(true);
+      }
+      
+      setLastScrollY(currentScrollY);
+    };
+    
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [lastScrollY]);
 
   useEffect(() => {
     if (!mounted) return;
@@ -73,9 +93,13 @@ export const FloatingNav = () => {
     <>
       <motion.nav
         initial={{ y: -100 }}
-        animate={{ y: 0 }}
+        animate={{ 
+          y: isNavVisible ? 0 : -120,
+          transition: { duration: 0.3, ease: "easeInOut" }
+        }}
         transition={{ duration: 0.6, ease: [0.6, 0.05, 0.01, 0.9] }}
-        className="fixed top-6 left-0 right-0 z-50 px-4 transition-all duration-500"
+        className="fixed top-0 left-0 right-0 z-50 px-4 pt-4 transition-all duration-500"
+        style={{ paddingTop: 'clamp(12px, 2vh, 20px)' }}
       >
         <div className={`max-w-7xl mx-auto rounded-2xl transition-all duration-500 ${navBg}`}>
           <div className="px-3 py-2">
@@ -84,7 +108,7 @@ export const FloatingNav = () => {
               <Link href="/" className="flex items-center space-x-3 group">
                 <motion.div
                   whileHover={{ scale: 1.05 }}
-                  className="relative w-20 h-20 md:w-24 md:h-24"
+                  className="relative w-16 h-16 md:w-20 md:h-20"
                 >
                   <Image
                     src="/logo.png"
@@ -235,7 +259,7 @@ export const FloatingNav = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.2 }}
-            className={`fixed top-24 left-4 right-4 z-50 md:hidden rounded-2xl shadow-xl transition-all duration-300 ${
+            className={`fixed top-20 left-4 right-4 z-50 md:hidden rounded-2xl shadow-xl transition-all duration-300 ${
               isDark
                 ? "bg-slate-900/95 border border-slate-700/50"
                 : "bg-white/60 backdrop-blur-lg border border-white/40"
