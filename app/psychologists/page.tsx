@@ -16,17 +16,20 @@ import {
     Clock,
     MapPin,
     CheckCircle,
-    Filter,
+
     Search,
     ChevronRight,
-    Sparkles,
+
     Users,
-    Brain,
-    Lock
+ 
+    Lock,
+    ArrowLeft,
+    Sun,
+    Moon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 
-// Fake psychologist data
+// Fake psychologist data UPDATE IT WITH REAL DATA LATER
 const psychologists = [
     {
         id: 1,
@@ -172,38 +175,46 @@ export default function PsychologistsPage() {
         };
     }, []);
 
+    const toggleTheme = () => {
+        const newTheme = !isDark;
+        setIsDark(newTheme);
+        if (newTheme) {
+            document.documentElement.classList.add('dark');
+            document.body.style.background = "linear-gradient(180deg, rgb(15,23,42) 0%, rgb(30,41,59) 100%)";
+        } else {
+            document.documentElement.classList.remove('dark');
+            document.body.style.background = "linear-gradient(135deg, rgb(171,196,255) 0%, rgb(182,204,254) 50%, rgb(193,211,254) 100%)";
+        }
+        window.dispatchEvent(new CustomEvent('themeChange'));
+    };
+
     if (!mounted) return null;
 
-    // Light theme colors (Dark text for light background)
+    // Theme colors
     const lightColors = {
-        textPrimary: '#0f172a', // Dark slate
-        textSecondary: '#334155', // Slate-700
-        textTertiary: '#475569', // Slate-600
+        bgGradient: 'linear-gradient(135deg, rgb(237,242,251), rgb(226,234,252))',
+        textPrimary: '#0f172a',
+        textSecondary: '#334155',
+        textTertiary: '#475569',
         buttonGradient: 'linear-gradient(135deg, rgb(120,137,179), rgb(100,115,155), rgb(85,98,127))',
         cardBg: 'rgba(255,255,255,0.7)',
         cardBorder: '1px solid rgba(171,196,255,0.3)',
-        badgeBg: 'rgba(255,255,255,0.8)',
-        badgeBorder: '1px solid rgba(171,196,255,0.4)',
         featureBg: 'rgba(120,137,179,0.12)',
         featureBorder: '1px solid rgba(120,137,179,0.25)',
-        iconBg: 'rgba(120,137,179,0.15)',
-        heroBg: 'linear-gradient(135deg, rgb(237,242,251), rgb(226,234,252))',
+        headerBg: 'rgba(255,255,255,0.6)',
     };
 
-    // Dark theme colors (Light text for dark background)
     const darkColors = {
-        textPrimary: '#f1f5f9', // Light slate
-        textSecondary: '#cbd5e1', // Slate-300
-        textTertiary: '#94a3b8', // Slate-400
+        bgGradient: 'linear-gradient(135deg, rgb(15,23,42), rgb(30,41,59))',
+        textPrimary: '#f1f5f9',
+        textSecondary: '#cbd5e1',
+        textTertiary: '#94a3b8',
         buttonGradient: 'linear-gradient(135deg, rgb(171,196,255), rgb(193,211,254), rgb(204,219,253))',
         cardBg: 'rgba(255,255,255,0.08)',
         cardBorder: '1px solid rgba(200,220,255,0.15)',
-        badgeBg: 'rgba(15,23,42,0.8)',
-        badgeBorder: '1px solid rgba(200,220,255,0.2)',
         featureBg: 'rgba(171,196,255,0.12)',
         featureBorder: '1px solid rgba(171,196,255,0.2)',
-        iconBg: 'rgba(171,196,255,0.15)',
-        heroBg: 'linear-gradient(135deg, rgb(15,23,42), rgb(30,41,59))',
+        headerBg: 'rgba(15,23,42,0.8)',
     };
 
     const colors = isDark ? darkColors : lightColors;
@@ -217,25 +228,41 @@ export default function PsychologistsPage() {
     });
 
     return (
-        <div className="min-h-screen pt-20">
-            {/* Hero Section */}
-            <section className="relative overflow-hidden py-20">
-                <div
-                    className="absolute inset-0 opacity-20"
-                    style={{
-                        background: colors.heroBg,
-                    }}
-                />
-                <div
-                    className="absolute inset-0 opacity-5"
-                    style={{
-                        background: isDark
-                            ? 'radial-gradient(circle at 30% 30%, rgb(171,196,255), transparent)'
-                            : 'radial-gradient(circle at 30% 30%, rgb(120,137,179), transparent)',
-                    }}
-                />
+        <div className="min-h-screen" style={{ background: colors.bgGradient }}>
+            
+            <header 
+                className=" top-0 z-30"
+             
+            >
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+                    <div className="flex items-center justify-between">
+                  
+                        <Link href="/dashboard">
+                            <motion.button 
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                className="flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300"
+                                style={{
+                                    background: colors.cardBg,
+                                    border: colors.cardBorder,
+                                    color: colors.textPrimary,
+                                }}
+                            >
+                                <ArrowLeft className="w-4 h-4" />
+                                <span className="text-sm hidden sm:inline">Back to Dashboard</span>
+                            </motion.button>
+                        </Link>
 
-                <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        
+
+                       
+                    </div>
+                </div>
+            </header>
+
+
+            <section className="relative overflow-hidden py-5">
+                <div className="relative z-10 max-w-7xl mx-auto px-3 sm:px-5 lg:px-4">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -541,7 +568,6 @@ export default function PsychologistsPage() {
                         onClick={(e) => e.stopPropagation()}
                     >
                         {isSubscribed ? (
-                            // Full profile for subscribed users
                             <div className="p-8">
                                 <div className="flex justify-between items-start mb-6">
                                     <div>
@@ -650,7 +676,6 @@ export default function PsychologistsPage() {
                                 </div>
                             </div>
                         ) : (
-                            // Subscribe prompt for non-subscribed users
                             <div className="p-12 text-center">
                                 <Lock className="w-16 h-16 mx-auto mb-6" style={{ color: isDark ? 'rgb(171,196,255)' : 'rgb(120,137,179)' }} />
                                 <h2

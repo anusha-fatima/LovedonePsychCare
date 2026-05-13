@@ -2,7 +2,16 @@
 "use client";
 
 import Link from "next/link";
-import { Facebook, Twitter, Linkedin, Instagram, Heart, Mail, Phone, MapPin } from "lucide-react";
+import {
+  Facebook,
+  Twitter,
+  Linkedin,
+  Instagram,
+  Heart,
+  Mail,
+  Phone,
+  MapPin,
+} from "lucide-react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { useState, useEffect } from "react";
@@ -14,21 +23,20 @@ export default function Footer() {
   useEffect(() => {
     setMounted(true);
     const checkDarkMode = () => {
-      setIsDark(document.documentElement.classList.contains('dark'));
+      setIsDark(document.documentElement.classList.contains("dark"));
     };
     checkDarkMode();
-    window.addEventListener('themeChange', checkDarkMode);
+    window.addEventListener("themeChange", checkDarkMode);
     const observer = new MutationObserver(checkDarkMode);
     observer.observe(document.documentElement, { attributes: true });
     return () => {
-      window.removeEventListener('themeChange', checkDarkMode);
+      window.removeEventListener("themeChange", checkDarkMode);
       observer.disconnect();
     };
   }, []);
 
   if (!mounted) return null;
 
-  // ✅ LIGHT THEME
   const lightColors = {
     bgColor: "rgb(237, 242, 251)",
     textPrimary: "#0f172a",
@@ -37,11 +45,12 @@ export default function Footer() {
     iconBg: "rgba(15, 23, 42, 0.08)",
     iconBorder: "1px solid rgba(15, 23, 42, 0.1)",
     heartColor: "rgb(120, 137, 179)",
-    dividerGradient: "linear-gradient(90deg, transparent, rgba(15, 23, 42, 0.15), transparent)",
-    bottomGradient: "linear-gradient(90deg, transparent, rgb(120,137,179), rgb(85,98,127), transparent)",
+    dividerGradient:
+      "linear-gradient(90deg, transparent, rgba(15, 23, 42, 0.15), transparent)",
+    bottomGradient:
+      "linear-gradient(90deg, transparent, rgb(120,137,179), rgb(85,98,127), transparent)",
   };
 
-  // ✅ DARK THEME
   const darkColors = {
     bgColor: "rgb(15, 23, 42)",
     textPrimary: "#f1f5f9",
@@ -50,8 +59,10 @@ export default function Footer() {
     iconBg: "rgba(241, 245, 249, 0.1)",
     iconBorder: "1px solid rgba(241, 245, 249, 0.15)",
     heartColor: "rgb(171, 196, 255)",
-    dividerGradient: "linear-gradient(90deg, transparent, rgba(241, 245, 249, 0.2), transparent)",
-    bottomGradient: "linear-gradient(90deg, transparent, rgb(171,196,255), rgb(204,219,253), transparent)",
+    dividerGradient:
+      "linear-gradient(90deg, transparent, rgba(241, 245, 249, 0.2), transparent)",
+    bottomGradient:
+      "linear-gradient(90deg, transparent, rgb(171,196,255), rgb(204,219,253), transparent)",
   };
 
   const colors = isDark ? darkColors : lightColors;
@@ -64,7 +75,11 @@ export default function Footer() {
   ];
 
   const contactInfo = [
-    { icon: Mail, text: "support@lovedonepsycare.com", href: "mailto:support@lovedonepsycare.com" },
+    {
+      icon: Mail,
+      text: "support@lovedonepsycare.com",
+      href: "mailto:support@lovedonepsycare.com",
+    },
     { icon: Phone, text: "phone no", href: "phone no" },
     { icon: MapPin, text: "Karachi, Pakistan", href: "#" },
   ];
@@ -82,8 +97,7 @@ export default function Footer() {
       className="w-full mt-auto relative overflow-hidden transition-colors duration-300"
       style={{ background: colors.bgColor }}
     >
-      {/* Decorative top border */}
-      <div 
+      <div
         className="absolute top-0 left-0 right-0 h-px"
         style={{ background: colors.bottomGradient }}
       />
@@ -96,7 +110,6 @@ export default function Footer() {
           viewport={{ once: true }}
           className="text-center"
         >
-          {/* Centered Large Logo */}
           <div className="mb-8 flex flex-col items-center justify-center">
             <Link href="/" className="flex flex-col items-center group">
               <motion.div
@@ -112,9 +125,9 @@ export default function Footer() {
                   priority
                 />
               </motion.div>
-              
+
               <div className="text-center mt-3">
-                <p 
+                <p
                   className="text-sm md:text-base tracking-wide font-medium transition-colors duration-300"
                   style={{ color: colors.textSecondary }}
                 >
@@ -124,8 +137,8 @@ export default function Footer() {
             </Link>
 
             <div className="mt-6 flex items-center justify-center space-x-3">
-              <Heart 
-                className="w-5 h-5 animate-pulse transition-colors duration-300" 
+              <Heart
+                className="w-5 h-5 animate-pulse transition-colors duration-300"
                 style={{ color: colors.heartColor }}
               />
               <p
@@ -134,14 +147,13 @@ export default function Footer() {
               >
                 Healing • Guidance • Support
               </p>
-              <Heart 
-                className="w-5 h-5 animate-pulse transition-colors duration-300" 
+              <Heart
+                className="w-5 h-5 animate-pulse transition-colors duration-300"
                 style={{ color: colors.heartColor }}
               />
             </div>
           </div>
 
-          {/* Contact Info Row */}
           <div className="flex flex-wrap justify-center gap-6 mb-12">
             {contactInfo.map((info, index) => {
               const Icon = info.icon;
@@ -152,9 +164,9 @@ export default function Footer() {
                   className="flex items-center space-x-2 text-sm md:text-base transition-all duration-300 hover:opacity-70 group"
                   style={{ color: colors.textSecondary }}
                 >
-                  <Icon 
-                    className="w-4 h-4 transition-transform duration-300 group-hover:scale-110" 
-                    style={{ color: colors.heartColor }} 
+                  <Icon
+                    className="w-4 h-4 transition-transform duration-300 group-hover:scale-110"
+                    style={{ color: colors.heartColor }}
                   />
                   <span>{info.text}</span>
                 </Link>
@@ -162,7 +174,6 @@ export default function Footer() {
             })}
           </div>
 
-          {/* Divider */}
           <div
             className="w-full h-px my-8 transition-all duration-300"
             style={{ background: colors.dividerGradient }}
@@ -182,7 +193,6 @@ export default function Footer() {
             ))}
           </div>
 
-          {/* Social Icons */}
           <div className="flex items-center justify-center gap-5 mb-12">
             {socials.map((social, i) => {
               const Icon = social.icon;
@@ -196,17 +206,19 @@ export default function Footer() {
                     border: colors.iconBorder,
                   }}
                 >
-                  <Icon 
-                    size={18} 
+                  <Icon
+                    size={18}
                     className="transition-all duration-300 group-hover:scale-110"
-                    style={{ color: colors.textSecondary }} 
+                    style={{ color: colors.textSecondary }}
                   />
-                  <span 
+                  <span
                     className="absolute -top-8 left-1/2 transform -translate-x-1/2 text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 px-2 py-1 rounded-full"
-                    style={{ 
+                    style={{
                       color: colors.textTertiary,
-                      background: isDark ? 'rgba(30, 41, 59, 0.9)' : 'rgba(237, 242, 251, 0.9)',
-                      backdropFilter: 'blur(4px)',
+                      background: isDark
+                        ? "rgba(30, 41, 59, 0.9)"
+                        : "rgba(237, 242, 251, 0.9)",
+                      backdropFilter: "blur(4px)",
                     }}
                   >
                     {social.label}
@@ -216,7 +228,6 @@ export default function Footer() {
             })}
           </div>
 
-          {/* Bottom Links */}
           <div className="flex flex-wrap justify-center gap-x-8 gap-y-3 text-xs mb-6">
             <Link
               href="/terms"
@@ -254,7 +265,8 @@ export default function Footer() {
               className="text-xs transition-colors duration-300"
               style={{ color: colors.textTertiary }}
             >
-              © {new Date().getFullYear()} LovedOne PsyCare. All rights reserved.
+              © {new Date().getFullYear()} LovedOne PsyCare. All rights
+              reserved.
             </p>
             <p
               className="text-[10px] transition-colors duration-300"
@@ -263,9 +275,7 @@ export default function Footer() {
               Making mental health accessible to everyone in Pakistan
             </p>
           </div>
-
-          {/* Decorative Bottom Gradient */}
-          <div 
+          <div
             className="absolute bottom-0 left-0 right-0 h-[2px]"
             style={{ background: colors.bottomGradient }}
           />

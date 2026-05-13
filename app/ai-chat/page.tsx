@@ -1,26 +1,31 @@
-'use client';
+"use client";
 
-import { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-  Send,
-  Heart,
   User,
   Sparkles,
-  Mic,
-  Image as ImageIcon,
   ArrowRight,
+  ArrowLeft,
   PenLine,
   Mail,
   Brain,
   Shield,
-} from 'lucide-react';
+  Paperclip,
+  Book,
+  Upload,
+  Sun,
+  Moon,
+} from "lucide-react";
+import Link from "next/link";
+import Image from "next/image";
 
 interface Message {
   id: string;
   text: string;
-  sender: 'user' | 'ai';
+  sender: "user" | "ai";
   timestamp: Date;
+  resources?: { type: string; title: string; icon: React.ReactNode }[];
 }
 
 const suggestedPrompts = [
@@ -35,60 +40,77 @@ const promptCards = [
   {
     icon: PenLine,
     label: "I'm feeling anxious",
-    sub: 'and need to talk it through',
+    sub: "and need to talk it through",
+  },
+  { icon: Mail, label: "Help me understand", sub: "my emotions better" },
+  { icon: Brain, label: "Tips for managing", sub: "stress and overthinking" },
+];
+
+const workspaceTools = [
+  {
+    id: "mood-tracker",
+    label: "Mood Tracker",
+    icon: Sparkles,
+    description: "Track your daily emotions",
   },
   {
-    icon: Mail,
-    label: 'Help me understand',
-    sub: 'my emotions better',
+    id: "prescription-log",
+    label: "Prescription Log",
+    icon: Book,
+    description: "Manage your medications",
   },
   {
+    id: "meditation",
+    label: "Meditation Guides",
     icon: Brain,
-    label: 'Tips for managing',
-    sub: 'stress and overthinking',
+    description: "Guided calming sessions",
   },
 ];
 
 export default function AIChatPage() {
   const [messages, setMessages] = useState<Message[]>([
     {
-      id: '1',
-      text: "Assalam-o-Alaikum. I'm here to listen and support you. How are you feeling today? You can speak in Urdu or English, whatever feels comfortable.",
-      sender: 'ai',
+      id: "1",
+      text: "Assalam-o-Alaikum. I'm here to listen and support you. How are you feeling today?",
+      sender: "ai",
       timestamp: new Date(),
     },
   ]);
 
-  const [input, setInput] = useState('');
-  const [language, setLanguage] = useState<'en' | 'ur'>('en');
+  const [input, setInput] = useState("");
+  const [language, setLanguage] = useState<"en" | "ur">("en");
   const [hasUserSent, setHasUserSent] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [activeTools, setActiveTools] = useState<string[]>([]);
   const [isDark, setIsDark] = useState(false);
   const [mounted, setMounted] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setMounted(true);
     const checkDarkMode = () => {
-      setIsDark(document.documentElement.classList.contains('dark'));
+      setIsDark(document.documentElement.classList.contains("dark"));
     };
     checkDarkMode();
-    window.addEventListener('themeChange', checkDarkMode);
+    window.addEventListener("themeChange", checkDarkMode);
     const observer = new MutationObserver(checkDarkMode);
     observer.observe(document.documentElement, { attributes: true });
     return () => {
-      window.removeEventListener('themeChange', checkDarkMode);
+      window.removeEventListener("themeChange", checkDarkMode);
       observer.disconnect();
     };
   }, []);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
-    if (hasUserSent) scrollToBottom();
-  }, [messages, hasUserSent]);
+    if (hasUserSent || isTyping) {
+      scrollToBottom();
+    }
+  }, [messages, hasUserSent, isTyping]);
 
   const handleSend = (text?: string) => {
     const msg = text ?? input;
@@ -97,411 +119,615 @@ export default function AIChatPage() {
     const newMessage: Message = {
       id: Date.now().toString(),
       text: msg,
-      sender: 'user',
+      sender: "user",
       timestamp: new Date(),
     };
 
-    setMessages(prev => [...prev, newMessage]);
-    setInput('');
+    setMessages((prev) => [...prev, newMessage]);
+    setInput("");
     setHasUserSent(true);
     setIsTyping(true);
 
     setTimeout(() => {
       const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
-        text: "Thank you for sharing that with me. I understand this might be difficult. Let's explore this together. Can you tell me more about how this is affecting your daily life?",
-        sender: 'ai',
+        text: "I hear you, and it's completely valid to feel this way. Let's explore what might be triggering this. Would you like to try a grounding exercise?",
+        sender: "ai",
         timestamp: new Date(),
+        resources: [
+          {
+            type: "meditation",
+            title: "5-Min Grounding",
+            icon: <Brain className="w-4 h-4" />,
+          },
+        ],
       };
-      setMessages(prev => [...prev, aiResponse]);
+      setMessages((prev) => [...prev, aiResponse]);
       setIsTyping(false);
     }, 1500);
   };
 
+  const toggleTheme = () => {
+    const newTheme = !isDark;
+    setIsDark(newTheme);
+    if (newTheme) {
+      document.documentElement.classList.add("dark");
+      document.body.style.background =
+        "linear-gradient(180deg, rgb(15,23,42) 0%, rgb(30,41,59) 100%)";
+    } else {
+      document.documentElement.classList.remove("dark");
+      document.body.style.background =
+        "linear-gradient(135deg, rgb(171,196,255) 0%, rgb(182,204,254) 50%, rgb(193,211,254) 100%)";
+    }
+    window.dispatchEvent(new CustomEvent("themeChange"));
+  };
+
   if (!mounted) return null;
 
-  // Light theme
-  const lightCardBg = 'rgba(237, 242, 251, 0.55)';
-  const lightCardBorder = '1px solid rgba(237, 242, 251, 0.55)';
-  const lightTopBarBorder = '1px solid rgba(204, 219, 253, 0.35)';
-  const lightTextPrimary = 'rgba(60,70,120,0.85)';
-  const lightSidebarBorder = '1px solid rgba(204, 219, 253, 0.3)';
-  const lightSuggestBg = 'transparent';
-  const lightSuggestHoverBg = 'rgba(204,219,253,0.35)';
-  const lightButtonGradient = 'linear-gradient(135deg, rgb(193,211,254), rgb(171,196,255))';
-  const lightMsgBubbleUser = 'linear-gradient(135deg, rgb(204,219,253), rgb(182,204,254))';
-  const lightMsgBubbleAI = 'rgba(237,242,251,0.75)';
-  const lightMsgBubbleAIBorder = '1px solid rgba(204,219,253,0.4)';
-  const lightInputBg = 'rgba(237,242,251,0.6)';
-  const lightInputBorder = '1px solid rgba(204,219,253,0.45)';
+  // Theme colors
+  const lightColors = {
+    bgGradient: "linear-gradient(135deg, rgb(237,242,251), rgb(226,234,252))",
+    cardBg: "rgba(255,255,255,0.7)",
+    cardBorder: "1px solid rgba(171,196,255,0.25)",
+    textPrimary: "#0f172a",
+    textSecondary: "#334155",
+    textTertiary: "#475569",
+    accentColor: "rgb(120,137,179)",
+    buttonGradient:
+      "linear-gradient(135deg, rgb(120,137,179), rgb(100,115,155))",
+    userBubble: "linear-gradient(135deg, rgb(120,137,179), rgb(100,115,155))",
+    aiBubble: "rgba(255,255,255,0.7)",
+    headerBg: "rgba(255,255,255,0.6)",
+    sidebarBg: "rgba(255,255,255,0.3)",
+  };
 
-  // Dark theme
-  const darkCardBg = 'rgba(15, 23, 42, 0.8)';
-  const darkCardBorder = '1px solid rgba(200,220,255,0.15)';
-  const darkTopBarBorder = '1px solid rgba(200,220,255,0.2)';
-  const darkTextPrimary = 'rgb(248,250,252)';
-  const darkSidebarBorder = '1px solid rgba(200,220,255,0.15)';
-  const darkSuggestBg = 'transparent';
-  const darkSuggestHoverBg = 'rgba(120,137,179,0.3)';
-  const darkButtonGradient = 'linear-gradient(135deg, rgb(120,137,179), rgb(100,115,155))';
-  const darkMsgBubbleUser = 'linear-gradient(135deg, rgb(120,137,179), rgb(100,115,155))';
-  const darkMsgBubbleAI = 'rgba(30,41,59,0.7)';
-  const darkMsgBubbleAIBorder = '1px solid rgba(120,137,179,0.3)';
-  const darkInputBg = 'rgba(255,255,255,0.08)';
-  const darkInputBorder = '1px solid rgba(120,137,179,0.3)';
+  const darkColors = {
+    bgGradient: "linear-gradient(135deg, rgb(15,23,42), rgb(30,41,59))",
+    cardBg: "rgba(255,255,255,0.08)",
+    cardBorder: "1px solid rgba(200,220,255,0.15)",
+    textPrimary: "#f1f5f9",
+    textSecondary: "#cbd5e1",
+    textTertiary: "#94a3b8",
+    accentColor: "rgb(171,196,255)",
+    buttonGradient:
+      "linear-gradient(135deg, rgb(171,196,255), rgb(193,211,254))",
+    userBubble: "linear-gradient(135deg, rgb(171,196,255), rgb(193,211,254))",
+    aiBubble: "rgba(255,255,255,0.08)",
+    headerBg: "rgba(15,23,42,0.8)",
+    sidebarBg: "rgba(15,23,42,0.4)",
+  };
 
-  // Select theme colors
-  const cardBg = isDark ? darkCardBg : lightCardBg;
-  const cardBorder = isDark ? darkCardBorder : lightCardBorder;
-  const topBarBorder = isDark ? darkTopBarBorder : lightTopBarBorder;
-  const textPrimary = isDark ? darkTextPrimary : lightTextPrimary;
-  const sidebarBorder = isDark ? darkSidebarBorder : lightSidebarBorder;
-  const suggestBg = isDark ? darkSuggestBg : lightSuggestBg;
-  const suggestHoverBg = isDark ? darkSuggestHoverBg : lightSuggestHoverBg;
-  const buttonGradient = isDark ? darkButtonGradient : lightButtonGradient;
-  const msgBubbleUser = isDark ? darkMsgBubbleUser : lightMsgBubbleUser;
-  const msgBubbleAI = isDark ? darkMsgBubbleAI : lightMsgBubbleAI;
-  const msgBubbleAIBorder = isDark ? darkMsgBubbleAIBorder : lightMsgBubbleAIBorder;
-  const inputBg = isDark ? darkInputBg : lightInputBg;
-  const inputBorder = isDark ? darkInputBorder : lightInputBorder;
+  const colors = isDark ? darkColors : lightColors;
 
   return (
     <div
-      className="min-h-screen pt-32 md:pt-40 flex items-center justify-center px-4"
-      style={{
-        background: isDark
-          ? 'linear-gradient(180deg, rgb(15,23,42) 0%, rgb(30,41,59) 100%)'
-          : 'linear-gradient(135deg, rgb(171,196,255) 0%, rgb(182,204,254) 50%, rgb(193,211,254) 100%)',
-      }}
+      className="fixed inset-0 z-[9999] flex flex-col"
+      style={{ background: colors.bgGradient }}
     >
-      
-      <div 
-        className="absolute inset-0 opacity-10 pointer-events-none"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fillRule='evenodd'%3E%3Cg fill='%23ccdbfd' fillOpacity='0.3'%3E%3Cpath d='M50 10 L58 25 L50 40 L42 25 Z M50 60 L58 75 L50 90 L42 75 Z M10 50 L25 58 L40 50 L25 42 Z M90 50 L75 58 L60 50 L75 42 Z M30 30 L35 38 L30 45 L25 38 Z M70 70 L75 78 L70 85 L65 78 Z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-          backgroundRepeat: 'repeat'
-        }}
+      <div
+        className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full blur-[120px] opacity-20"
+        style={{ background: colors.accentColor }}
+      />
+      <div
+        className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full blur-[120px] opacity-20"
+        style={{ background: colors.accentColor }}
       />
 
-   
-      <div
-        className="w-full max-w-4xl rounded-3xl overflow-visible shadow-2xl flex flex-col"
+      <header
+        className="h-16 flex items-center justify-between px-6 border-b backdrop-blur-md z-10 shrink-0"
         style={{
-          height: 'calc(100vh - 6rem)',
-          background: cardBg,
-          backdropFilter: 'blur(28px)',
-          border: cardBorder,
+          background: colors.headerBg,
+          borderColor: isDark
+            ? "rgba(200,220,255,0.1)"
+            : "rgba(171,196,255,0.2)",
         }}
       >
-    
-        <div
-          className="flex items-center justify-between px-6 py-4"
-          style={{ borderBottom: topBarBorder }}
-        >
-        
-          <div className="flex items-center space-x-2.5">
-            <div
-              className="w-8 h-8 rounded-xl flex items-center justify-center shadow-sm"
+        <div className="flex items-center gap-4">
+          <Link href="/dashboard">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="p-2 rounded-full transition-all duration-300 flex items-center gap-2"
               style={{
-                background: isDark
-                  ? 'linear-gradient(135deg, rgb(120,137,179), rgb(100,115,155))'
-                  : 'linear-gradient(135deg, rgb(204,219,253), rgb(171,196,255))',
+                background: colors.cardBg,
+                border: colors.cardBorder,
+                color: colors.textPrimary,
               }}
             >
-              <Heart className="w-4 h-4" style={{ color: isDark ? 'white' : 'rgba(50,60,100,0.9)' }} />
-            </div>
-            <span className="text-sm font-semibold tracking-tight" style={{ color: textPrimary }}>
-              AI Companion
-            </span>
-          </div>
+              <ArrowLeft className="w-4 h-4" />
+              <span className="text-sm hidden sm:inline">Back</span>
+            </motion.button>
+          </Link>
 
-          {/* Language Toggle */}
-          <div className="flex items-center space-x-3">
-            <button
-              onClick={() => setLanguage(language === 'en' ? 'ur' : 'en')}
-              className="flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200"
-              style={{
-                background: isDark ? 'rgba(120,137,179,0.3)' : 'rgba(204, 219, 253, 0.45)',
-                color: isDark ? 'rgb(200,220,255)' : 'rgba(60,70,130,0.9)',
-                border: isDark ? '1px solid rgba(120,137,179,0.4)' : '1px solid rgba(171,196,255,0.4)',
-              }}
-            >
-              <span>{language === 'en' ? '🇵🇰 اردو' : '🇬🇧 English'}</span>
-            </button>
+          <div className="h-6 w-px" style={{ background: colors.cardBorder }} />
 
-            <div
-              className="w-8 h-8 rounded-full flex items-center justify-center"
-              style={{
-                background: isDark
-                  ? 'linear-gradient(135deg, rgb(120,137,179), rgb(100,115,155))'
-                  : 'linear-gradient(135deg, rgb(193,211,254), rgb(171,196,255))',
-              }}
+          <Link href="/" className="flex-shrink-0 group">
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              className="relative w-28 h-14 md:w-32 md:h-16"
             >
-              <User className="w-4 h-4" style={{ color: isDark ? 'white' : 'rgba(50,60,110,0.8)' }} />
-            </div>
-          </div>
+              <Image
+                src="/logo.png"
+                alt="LovedOne PsyCare Logo"
+                fill
+                className="object-contain"
+                priority
+              />
+            </motion.div>
+          </Link>
         </div>
 
-      
-        <div className="flex flex-1 overflow-hidden">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={toggleTheme}
+            className="p-2 rounded-lg transition-all duration-300"
+            style={{
+              background: colors.cardBg,
+              border: colors.cardBorder,
+              color: colors.textPrimary,
+            }}
+          >
+            {isDark ? (
+              <Sun className="w-4 h-4" />
+            ) : (
+              <Moon className="w-4 h-4" />
+            )}
+          </button>
 
-         
-          <div className="hidden md:flex flex-col w-56 shrink-0 py-5 px-4" style={{ borderRight: sidebarBorder }}>
-            <p className="text-[10px] uppercase tracking-[0.18em] font-semibold mb-3" style={{ color: isDark ? 'rgba(200,220,255,0.6)' : 'rgba(100,120,200,0.6)' }}>
-              Suggestions
-            </p>
-            {suggestedPrompts.map((prompt, i) => (
-              <button
-                key={i}
-                onClick={() => setInput(prompt)}
-                className="text-left text-xs px-3 py-2.5 mb-1 rounded-xl transition-all duration-200 leading-relaxed"
-                style={{ color: isDark ? 'rgb(200,220,255)' : 'rgba(60,75,140,0.8)', background: suggestBg }}
-                onMouseEnter={e => {
-                  (e.currentTarget as HTMLElement).style.background = suggestHoverBg;
-                }}
-                onMouseLeave={e => {
-                  (e.currentTarget as HTMLElement).style.background = suggestBg;
-                }}
-              >
-                {prompt}
-              </button>
-            ))}
+          <button
+            onClick={() => setLanguage(language === "en" ? "ur" : "en")}
+            className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-300"
+            style={{
+              background: colors.cardBg,
+              border: colors.cardBorder,
+              color: colors.textPrimary,
+            }}
+          >
+            {language === "en" ? "اردو" : "English"}
+          </button>
 
-            <div className="mt-auto flex items-center space-x-2 pt-4" style={{ borderTop: isDark ? '1px solid rgba(120,137,179,0.2)' : '1px solid rgba(204,219,253,0.3)' }}>
-              <Shield className="w-3.5 h-3.5" style={{ color: isDark ? 'rgba(200,220,255,0.5)' : 'rgba(100,120,200,0.5)' }} />
-              <span className="text-[10px]" style={{ color: isDark ? 'rgba(200,220,255,0.5)' : 'rgba(100,120,200,0.5)' }}>
-                End-to-end encrypted
-              </span>
-            </div>
+          <div
+            className="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden"
+            style={{
+              background: colors.cardBg,
+              border: colors.cardBorder,
+            }}
+          >
+            <User className="w-4 h-4" style={{ color: colors.textPrimary }} />
           </div>
+        </div>
+      </header>
 
-          {/* Chat Column */}
-          <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex flex-1 overflow-hidden">
+        <aside
+          className="hidden lg:flex flex-col w-72 border-r backdrop-blur-sm overflow-y-auto shrink-0"
+          style={{
+            background: colors.sidebarBg,
+            borderColor: colors.cardBorder,
+          }}
+        >
+          <div className="p-6 space-y-6">
+            <div>
+              <p
+                className="text-[10px] uppercase tracking-widest font-bold mb-4"
+                style={{ color: colors.textTertiary }}
+              >
+                Quick Insights
+              </p>
+              <div className="space-y-2">
+                {suggestedPrompts.map((p, i) => (
+                  <button
+                    key={i}
+                    onClick={() => handleSend(p)}
+                    className="w-full text-left p-3 rounded-xl text-xs transition-all duration-300 hover:translate-x-1"
+                    style={{
+                      color: colors.textSecondary,
+                      background: isDark
+                        ? "rgba(255,255,255,0.03)"
+                        : "rgba(171,196,255,0.08)",
+                    }}
+                    onMouseEnter={(e) => {
+                      (e.currentTarget as HTMLElement).style.background = isDark
+                        ? "rgba(171,196,255,0.1)"
+                        : "rgba(171,196,255,0.15)";
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.currentTarget as HTMLElement).style.background = isDark
+                        ? "rgba(255,255,255,0.03)"
+                        : "rgba(171,196,255,0.08)";
+                    }}
+                  >
+                    {p}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-            {/* Welcome or Chat */}
-            <AnimatePresence mode="wait">
-              {!hasUserSent ? (
-                <motion.div
-                  key="welcome"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  className="flex-1 flex flex-col items-center justify-center px-6 pb-4"
-                >
-                  <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.6 }} className="text-center mb-10">
-                    <p className="text-base mb-1 font-light" style={{ color: isDark ? 'rgb(200,220,255)' : 'rgba(80,100,170,0.75)' }}>
-                      Assalam-o-Alaikum 🌿
-                    </p>
-                    <h1 className="font-semibold leading-tight" style={{
-                      fontSize: 'clamp(24px, 4vw, 36px)',
-                      color: isDark ? 'rgb(248,250,252)' : 'rgba(40,55,110,0.88)',
-                      letterSpacing: '-0.02em',
-                    }}>
-                      What would you like to talk about?
-                    </h1>
-                    <p className="mt-2 text-sm font-light max-w-sm mx-auto leading-relaxed" style={{ color: isDark ? 'rgba(200,220,255,0.6)' : 'rgba(80,100,170,0.6)' }}>
-                      Use one of the prompts below, or share what's on your mind.
-                    </p>
-                  </motion.div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full max-w-xl mb-4">
-                    {promptCards.map((card, i) => {
-                      const Icon = card.icon;
-                      return (
-                        <motion.button
-                          key={i}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.2 + i * 0.08, duration: 0.5 }}
-                          onClick={() => handleSend(card.label + ' ' + card.sub)}
-                          className="flex flex-col items-start text-left px-4 py-4 rounded-2xl transition-all duration-200 group"
+            <div
+              className="pt-4 border-t"
+              style={{ borderColor: colors.cardBorder }}
+            >
+              <p
+                className="text-[10px] uppercase tracking-widest font-bold mb-4"
+                style={{ color: colors.textTertiary }}
+              >
+                Wellness Workspace
+              </p>
+              <div className="space-y-2">
+                {workspaceTools.map((tool) => {
+                  const Icon = tool.icon;
+                  return (
+                    <button
+                      key={tool.id}
+                      className="w-full text-left p-3 rounded-xl transition-all duration-300 group"
+                      style={{
+                        background: activeTools.includes(tool.id)
+                          ? colors.buttonGradient
+                          : isDark
+                            ? "rgba(255,255,255,0.03)"
+                            : "rgba(171,196,255,0.08)",
+                      }}
+                      onClick={() => {
+                        if (activeTools.includes(tool.id)) {
+                          setActiveTools(
+                            activeTools.filter((t) => t !== tool.id),
+                          );
+                        } else {
+                          setActiveTools([...activeTools, tool.id]);
+                        }
+                      }}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Icon
+                          className="w-4 h-4"
                           style={{
-                            background: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(237, 242, 251, 0.7)',
-                            border: isDark ? '1px solid rgba(120,137,179,0.3)' : '1px solid rgba(204, 219, 253, 0.5)',
-                            boxShadow: isDark ? '0 2px 12px rgba(0,0,0,0.2)' : '0 2px 12px rgba(171,196,255,0.12)',
+                            color: activeTools.includes(tool.id)
+                              ? isDark
+                                ? "#0f172a"
+                                : "#fff"
+                              : colors.accentColor,
                           }}
-                          onMouseEnter={e => {
-                            (e.currentTarget as HTMLElement).style.background = isDark ? 'rgba(255,255,255,0.15)' : 'rgba(237,242,251,0.95)';
-                            (e.currentTarget as HTMLElement).style.boxShadow = isDark ? '0 4px 20px rgba(0,0,0,0.3)' : '0 4px 20px rgba(171,196,255,0.25)';
-                            (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)';
-                          }}
-                          onMouseLeave={e => {
-                            (e.currentTarget as HTMLElement).style.background = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(237, 242, 251, 0.7)';
-                            (e.currentTarget as HTMLElement).style.boxShadow = isDark ? '0 2px 12px rgba(0,0,0,0.2)' : '0 2px 12px rgba(171,196,255,0.12)';
-                            (e.currentTarget as HTMLElement).style.transform = 'translateY(0)';
-                          }}
-                        >
-                          <Icon className="w-4 h-4 mb-2.5" style={{ color: isDark ? 'rgb(150,170,220)' : 'rgba(100,130,210,0.7)' }} />
-                          <span className="text-xs font-medium leading-snug" style={{ color: isDark ? 'rgb(248,250,252)' : 'rgba(50,65,120,0.85)' }}>
-                            {card.label}
-                          </span>
-                          <span className="text-[11px] mt-0.5 leading-snug" style={{ color: isDark ? 'rgba(200,220,255,0.6)' : 'rgba(100,120,190,0.6)' }}>
-                            {card.sub}
-                          </span>
-                        </motion.button>
-                      );
-                    })}
-                  </div>
-                </motion.div>
-              ) : (
-
-                /* Messages */
-                <motion.div key="chat" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
-                  <AnimatePresence>
-                    {messages.map(message => (
-                      <motion.div
-                        key={message.id}
-                        initial={{ opacity: 0, y: 14 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -14 }}
-                        className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-                      >
-                        <div className={`flex items-end gap-2 max-w-sm ${message.sender === 'user' ? 'flex-row-reverse' : ''}`}>
-                          <div
-                            className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 shadow-sm"
+                        />
+                        <div>
+                          <p
+                            className="text-xs font-medium"
                             style={{
-                              background: message.sender === 'user'
-                                ? isDark ? 'linear-gradient(135deg, rgb(120,137,179), rgb(100,115,155))' : 'linear-gradient(135deg, rgb(204,219,253), rgb(171,196,255))'
-                                : isDark ? 'linear-gradient(135deg, rgb(120,137,179), rgb(100,115,155))' : 'linear-gradient(135deg, rgb(182,204,254), rgb(193,211,254))',
+                              color: activeTools.includes(tool.id)
+                                ? isDark
+                                  ? "#0f172a"
+                                  : "#fff"
+                                : colors.textPrimary,
                             }}
                           >
-                            {message.sender === 'user' ? (
-                              <User className="w-3.5 h-3.5" style={{ color: 'white' }} />
+                            {tool.label}
+                          </p>
+                          <p
+                            className="text-[10px]"
+                            style={{
+                              color: activeTools.includes(tool.id)
+                                ? isDark
+                                  ? "rgba(15,23,42,0.7)"
+                                  : "rgba(255,255,255,0.7)"
+                                : colors.textTertiary,
+                            }}
+                          >
+                            {tool.description}
+                          </p>
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div
+              className="pt-4 border-t"
+              style={{ borderColor: colors.cardBorder }}
+            >
+              <button
+                className="w-full p-3 rounded-xl flex items-center gap-3 transition-all duration-300 hover:translate-x-1"
+                style={{
+                  background: isDark
+                    ? "rgba(255,255,255,0.03)"
+                    : "rgba(171,196,255,0.08)",
+                }}
+              >
+                <Upload
+                  className="w-4 h-4"
+                  style={{ color: colors.accentColor }}
+                />
+                <div className="text-left">
+                  <p
+                    className="text-xs font-medium"
+                    style={{ color: colors.textPrimary }}
+                  >
+                    Share Prescription
+                  </p>
+                  <p
+                    className="text-[10px]"
+                    style={{ color: colors.textTertiary }}
+                  >
+                    Upload securely for review
+                  </p>
+                </div>
+              </button>
+            </div>
+          </div>
+        </aside>
+        {/* MAIN CHAT BOX */}
+        <main className="flex-1 flex flex-col overflow-hidden">
+          <div className="text-center pt-6 pb-2 shrink-0">
+            <div
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-3 backdrop-blur-md"
+              style={{
+                background: colors.cardBg,
+                border: colors.cardBorder,
+              }}
+            >
+              <Sparkles
+                className="w-4 h-4"
+                style={{ color: colors.accentColor }}
+              />
+              <span
+                className="text-xs font-medium"
+                style={{ color: colors.textSecondary }}
+              >
+                AI-Powered Support
+              </span>
+            </div>
+            <h2
+              className="text-2xl md:text-3xl font-light tracking-tight"
+              style={{ color: colors.textPrimary }}
+            >
+              Your Safe Space to
+              <span
+                className="block font-semibold"
+                style={{ color: colors.accentColor }}
+              >
+                Speak Freely
+              </span>
+            </h2>
+            <p className="text-xs mt-1" style={{ color: colors.textTertiary }}>
+              Every conversation is confidential and encrypted
+            </p>
+          </div>
+
+          <div
+            ref={chatContainerRef}
+            className="flex-1 overflow-y-auto px-4 py-4"
+          >
+            <div className="max-w-3xl mx-auto space-y-6">
+              <AnimatePresence mode="wait">
+                {!hasUserSent ? (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    className="flex flex-col items-center text-center pt-8"
+                  >
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
+                      {promptCards.map((card, i) => (
+                        <motion.button
+                          key={i}
+                          whileHover={{ y: -5 }}
+                          onClick={() =>
+                            handleSend(card.label + " " + card.sub)
+                          }
+                          className="p-4 rounded-2xl text-left flex flex-col gap-2 transition-all duration-300"
+                          style={{
+                            background: colors.cardBg,
+                            border: colors.cardBorder,
+                          }}
+                        >
+                          <card.icon
+                            className="w-5 h-5"
+                            style={{ color: colors.accentColor }}
+                          />
+                          <div>
+                            <p
+                              className="font-bold text-sm"
+                              style={{ color: colors.textPrimary }}
+                            >
+                              {card.label}
+                            </p>
+                            <p
+                              className="text-xs"
+                              style={{ color: colors.textTertiary }}
+                            >
+                              {card.sub}
+                            </p>
+                          </div>
+                        </motion.button>
+                      ))}
+                    </div>
+                  </motion.div>
+                ) : (
+                  <div className="space-y-6">
+                    {messages.map((msg) => (
+                      <motion.div
+                        key={msg.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
+                      >
+                        <div
+                          className={`flex gap-3 max-w-[80%] ${msg.sender === "user" ? "flex-row-reverse" : ""}`}
+                        >
+                          <div
+                            className="w-8 h-8 rounded-lg shrink-0 flex items-center justify-center"
+                            style={{
+                              background:
+                                msg.sender === "user"
+                                  ? colors.buttonGradient
+                                  : colors.cardBg,
+                              border: colors.cardBorder,
+                            }}
+                          >
+                            {msg.sender === "user" ? (
+                              <User
+                                className="w-4 h-4"
+                                style={{ color: "#fff" }}
+                              />
                             ) : (
-                              <Heart className="w-3.5 h-3.5" style={{ color: 'white' }} />
+                              <Sparkles
+                                className="w-4 h-4"
+                                style={{ color: colors.accentColor }}
+                              />
                             )}
                           </div>
-
                           <div
-                            className={`px-4 py-3 text-sm leading-relaxed ${
-                              message.sender === 'user' ? 'rounded-2xl rounded-br-sm' : 'rounded-2xl rounded-bl-sm'
-                            }`}
-                            style={
-                              message.sender === 'user'
-                                ? {
-                                    background: msgBubbleUser,
-                                    color: 'white',
-                                    boxShadow: '0 2px 12px rgba(171,196,255,0.3)',
-                                  }
-                                : {
-                                    background: msgBubbleAI,
-                                    border: msgBubbleAIBorder,
-                                    color: isDark ? 'rgb(226,232,240)' : 'rgba(50,70,130,0.85)',
-                                    boxShadow: isDark ? '0 2px 8px rgba(0,0,0,0.2)' : '0 2px 8px rgba(171,196,255,0.15)',
-                                  }
-                            }
+                            className="p-4 rounded-2xl text-sm leading-relaxed"
+                            style={{
+                              background:
+                                msg.sender === "user"
+                                  ? colors.userBubble
+                                  : colors.aiBubble,
+                              color:
+                                msg.sender === "user"
+                                  ? "#fff"
+                                  : colors.textPrimary,
+                              borderRadius:
+                                msg.sender === "user"
+                                  ? "1rem 1rem 0.25rem 1rem"
+                                  : "1rem 1rem 1rem 0.25rem",
+                            }}
                           >
-                            {message.text}
+                            {msg.text}
+                            {msg.resources && (
+                              <div
+                                className="mt-3 pt-2 border-t"
+                                style={{ borderColor: "rgba(0,0,0,0.1)" }}
+                              >
+                                <p className="text-xs opacity-70 mb-2">
+                                  Recommended for you:
+                                </p>
+                                <div className="flex gap-2">
+                                  {msg.resources.map((res, i) => (
+                                    <button
+                                      key={i}
+                                      className="text-xs px-3 py-1 rounded-full flex items-center gap-1"
+                                      style={{
+                                        background: "rgba(120,137,179,0.15)",
+                                      }}
+                                    >
+                                      {res.icon}
+                                      {res.title}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </motion.div>
                     ))}
 
                     {isTyping && (
-                      <motion.div key="typing" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="flex justify-start">
-                        <div className="flex items-end gap-2">
-                          <div
-                            className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
-                            style={{
-                              background: isDark ? 'linear-gradient(135deg, rgb(120,137,179), rgb(100,115,155))' : 'linear-gradient(135deg, rgb(182,204,254), rgb(193,211,254))',
-                            }}
-                          >
-                            <Heart className="w-3.5 h-3.5" style={{ color: 'white' }} />
-                          </div>
-                          <div className="px-4 py-3 rounded-2xl rounded-bl-sm flex items-center gap-1.5" style={{ background: msgBubbleAI, border: msgBubbleAIBorder }}>
-                            {[0, 0.2, 0.4].map((delay, i) => (
-                              <motion.span
-                                key={i}
-                                className="w-1.5 h-1.5 rounded-full block"
-                                style={{ background: isDark ? 'rgba(150,170,220,0.5)' : 'rgba(100,130,210,0.5)' }}
-                                animate={{ y: [0, -4, 0] }}
-                                transition={{ duration: 0.7, delay, repeat: Infinity }}
-                              />
-                            ))}
-                          </div>
+                      <div className="flex justify-start gap-3">
+                        <div
+                          className="w-8 h-8 rounded-lg flex items-center justify-center"
+                          style={{
+                            background: colors.cardBg,
+                            border: colors.cardBorder,
+                          }}
+                        >
+                          <Sparkles
+                            className="w-4 h-4"
+                            style={{ color: colors.accentColor }}
+                          />
                         </div>
-                      </motion.div>
+                        <div
+                          className="p-4 rounded-2xl flex gap-1"
+                          style={{
+                            background: colors.aiBubble,
+                            border: colors.cardBorder,
+                          }}
+                        >
+                          <span
+                            className="w-2 h-2 rounded-full animate-bounce"
+                            style={{ background: colors.accentColor }}
+                          />
+                          <span
+                            className="w-2 h-2 rounded-full animate-bounce [animation-delay:0.2s]"
+                            style={{ background: colors.accentColor }}
+                          />
+                          <span
+                            className="w-2 h-2 rounded-full animate-bounce [animation-delay:0.4s]"
+                            style={{ background: colors.accentColor }}
+                          />
+                        </div>
+                      </div>
                     )}
-                  </AnimatePresence>
-                  <div ref={messagesEndRef} />
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Input Bar */}
-            <div className="px-5 py-4" style={{ borderTop: isDark ? '1px solid rgba(120,137,179,0.2)' : '1px solid rgba(204,219,253,0.3)' }}>
-              <div
-                className="flex items-center gap-2 px-3 py-2.5 rounded-2xl transition-all duration-200"
-                style={{
-                  background: inputBg,
-                  border: inputBorder,
-                  boxShadow: isDark ? '0 2px 12px rgba(0,0,0,0.2)' : '0 2px 12px rgba(171,196,255,0.1)',
-                }}
-              >
-                {/* Mic */}
-                <button
-                  className="p-1.5 rounded-full transition-all duration-200 shrink-0"
-                  style={{ color: isDark ? 'rgba(200,220,255,0.6)' : 'rgba(100,130,210,0.6)' }}
-                  onMouseEnter={e => {
-                    (e.currentTarget as HTMLElement).style.background = isDark ? 'rgba(120,137,179,0.3)' : 'rgba(204,219,253,0.4)';
-                    (e.currentTarget as HTMLElement).style.color = isDark ? 'rgb(200,220,255)' : 'rgba(60,90,190,0.9)';
-                  }}
-                  onMouseLeave={e => {
-                    (e.currentTarget as HTMLElement).style.background = 'transparent';
-                    (e.currentTarget as HTMLElement).style.color = isDark ? 'rgba(200,220,255,0.6)' : 'rgba(100,130,210,0.6)';
-                  }}
-                >
-                  <Mic className="w-4 h-4" />
-                </button>
-
-                {/* Image */}
-                <button
-                  className="p-1.5 rounded-full transition-all duration-200 shrink-0"
-                  style={{ color: isDark ? 'rgba(200,220,255,0.6)' : 'rgba(100,130,210,0.6)' }}
-                  onMouseEnter={e => {
-                    (e.currentTarget as HTMLElement).style.background = isDark ? 'rgba(120,137,179,0.3)' : 'rgba(204,219,253,0.4)';
-                    (e.currentTarget as HTMLElement).style.color = isDark ? 'rgb(200,220,255)' : 'rgba(60,90,190,0.9)';
-                  }}
-                  onMouseLeave={e => {
-                    (e.currentTarget as HTMLElement).style.background = 'transparent';
-                    (e.currentTarget as HTMLElement).style.color = isDark ? 'rgba(200,220,255,0.6)' : 'rgba(100,130,210,0.6)';
-                  }}
-                >
-                  <ImageIcon className="w-4 h-4" />
-                </button>
-
-                {/* Input */}
-                <input
-                  type="text"
-                  value={input}
-                  onChange={e => setInput(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && handleSend()}
-                  placeholder={language === 'en' ? 'Ask whatever you want…' : 'جو دل میں ہے وہ لکھیں…'}
-                  className="flex-1 bg-transparent text-sm outline-none"
-                  style={{ color: isDark ? 'rgb(248,250,252)' : 'rgba(40,55,110,0.9)' }}
-                />
-
-                {/* Send */}
-                <button
-                  onClick={() => handleSend()}
-                  disabled={!input.trim()}
-                  className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed"
-                  style={{
-                    background: input.trim() ? buttonGradient : isDark ? 'rgba(120,137,179,0.2)' : 'rgba(204,219,253,0.3)',
-                    boxShadow: input.trim() ? (isDark ? '0 2px 8px rgba(120,137,179,0.3)' : '0 2px 8px rgba(171,196,255,0.4)') : 'none',
-                  }}
-                >
-                  <ArrowRight className="w-4 h-4" style={{ color: input.trim() ? 'white' : isDark ? 'rgba(150,170,220,0.5)' : 'rgba(100,130,190,0.5)' }} />
-                </button>
-              </div>
-
-              <p className="text-center text-[10px] mt-2.5 flex items-center justify-center gap-1.5" style={{ color: isDark ? 'rgba(200,220,255,0.5)' : 'rgba(120,145,210,0.5)' }}>
-                <Sparkles className="w-3 h-3" />
-                AI responses are for support only, not medical advice
-              </p>
+                  </div>
+                )}
+              </AnimatePresence>
+              <div ref={messagesEndRef} />
             </div>
           </div>
-        </div>
+
+          <div className="p-6 shrink-0">
+            <div
+              className="max-w-3xl mx-auto rounded-2xl backdrop-blur-xl p-2 flex items-center gap-2 shadow-2xl"
+              style={{
+                background: colors.cardBg,
+                border: colors.cardBorder,
+              }}
+            >
+              <button
+                className="p-3 rounded-xl transition-colors"
+                style={{ color: colors.textTertiary }}
+                onMouseEnter={(e) =>
+                  ((e.currentTarget as HTMLElement).style.background = isDark
+                    ? "rgba(171,196,255,0.1)"
+                    : "rgba(171,196,255,0.15)")
+                }
+                onMouseLeave={(e) =>
+                  ((e.currentTarget as HTMLElement).style.background =
+                    "transparent")
+                }
+              >
+                <Paperclip className="w-5 h-5" />
+              </button>
+
+              <input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSend()}
+                placeholder="Share what's on your mind..."
+                className="flex-1 bg-transparent border-none focus:ring-0 text-sm outline-none"
+                style={{ color: colors.textPrimary }}
+              />
+
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={() => handleSend()}
+                disabled={!input.trim()}
+                className="p-3 rounded-xl transition-all disabled:opacity-40"
+                style={{
+                  background: input.trim()
+                    ? colors.buttonGradient
+                    : isDark
+                      ? "rgba(171,196,255,0.1)"
+                      : "rgba(171,196,255,0.2)",
+                }}
+              >
+                <ArrowRight
+                  className="w-5 h-5"
+                  style={{ color: input.trim() ? "#fff" : colors.textTertiary }}
+                />
+              </motion.button>
+            </div>
+            <p
+              className="text-center text-[10px] mt-3 font-medium"
+              style={{ color: colors.textTertiary }}
+            >
+              <Shield className="w-3 h-3 inline mr-1" />
+              Privacy First: AI can make mistakes. Consider checking important
+              info.
+            </p>
+          </div>
+        </main>
       </div>
     </div>
   );

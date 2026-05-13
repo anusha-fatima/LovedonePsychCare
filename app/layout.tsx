@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import localFont from "next/font/local";
-import { FloatingNav } from "../components/FloatingNav";
+import { FloatingNav } from "../components/Navbar";
 import CursorGlow from "../components/CursorGlow";
 import { LanguageProvider } from "../context/LanguageContext";
 import "./globals.css";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
+
 
 
 const inter = Inter({
@@ -21,9 +22,15 @@ const jameelNoori = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "LovePsychCare - Mental Health Care, Rooted in Pakistan",
+title: "LovedOnePsychCare - Mental Health Care, Rooted in Pakistan",
   description:
     "Your mind matters. We're here to help with culturally-aware mental health support across Pakistan.",
+   icons: {
+    icon: "/icon.ico",
+    shortcut: "/logo.ico",
+    apple: "/icon.png",
+  },
+    
 };
 
 export default function RootLayout({

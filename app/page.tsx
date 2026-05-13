@@ -1,27 +1,20 @@
-import { FloatingNav } from "../components/FloatingNav";
+import { FloatingNav } from "../components/Navbar";
 import { HeroSection } from "../components/HeroSection";
 import Footer from "../components/Footer";
-// import Stats from "@/components/Stats";
 import { KineticTypography } from "@/components/KineticTypography";
-// import HowItWorks from "@/components/HowItWorks";
-import { PsychologistShowcase } from "../components/PsychologistsHero";
-// import Testimonials from "@/components/Testimonials";
-import CTASection from "@/components/CTASection";
-import { SolutionsGrid } from '../components/sections/SolutionsGrid';
+import { AppShowcase} from "../components/AppShowcase";
+import QuoteSection from "@/components/QuoteSection";
+import { CTASection } from '../components/CTASection';
 
 export default function Home() {
   return (
     <>
       <FloatingNav />
       <HeroSection />
-      {/* <Stats /> */}
       <KineticTypography />
-      {/* <HowItWorks /> */}
-      <PsychologistShowcase />
-      <CTASection />
-      {/* <Testimonials /> */}
-      <SolutionsGrid />
-      
+      <AppShowcase />
+      <CTASection />    
+      <QuoteSection />
       <Footer />
     </>
   );

@@ -90,7 +90,7 @@ export default function DashboardPage() {
       icon: Volume2,
       title: 'Voice Cloning',
       description: 'Hear from someone you love',
-      link: '/voice-cloning',
+      link: '/dashboard/voice-cloning',
       color: 'from-purple-500 to-pink-500',
       highlight: true,
     },

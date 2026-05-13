@@ -38,7 +38,6 @@ export default function CursorGlow() {
         }}
       />
 
-      {/* Inner glow core */}
       <div
         style={{
           position: "absolute",
