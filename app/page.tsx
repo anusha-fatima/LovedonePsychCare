@@ -1,21 +1,23 @@
-import { FloatingNav } from "../components/Navbar";
-import { HeroSection } from "../components/HeroSection";
-import Footer from "../components/Footer";
-import { KineticTypography } from "@/components/KineticTypography";
-import { AppShowcase} from "../components/AppShowcase";
-import QuoteSection from "@/components/QuoteSection";
-import { CTASection } from '../components/CTASection';
+import { Hero } from "@/components/sections/Hero";
+import { Services } from "@/components/sections/Services";
+import { Process } from "@/components/sections/Process";
+import { AppPreview } from "@/components/sections/AppPreview";
+import { CaseStudies } from "@/components/sections/CaseStudies";
+import { Testimonials } from "@/components/sections/Testimonials";
+import { CTA } from "@/components/sections/CTA";
+import { SiteFooter } from "@/components/sections/SiteFooter";
 
-export default function Home() {
+export default function HomePage() {
   return (
     <>
-      <FloatingNav />
-      <HeroSection />
-      <KineticTypography />
-      <AppShowcase />
-      <CTASection />    
-      <QuoteSection />
-      <Footer />
+      <Hero />
+      <Services />
+      <Process />
+      <AppPreview />
+      <CaseStudies />
+      <Testimonials />
+      <CTA />
+      <SiteFooter />
     </>
   );
 }
