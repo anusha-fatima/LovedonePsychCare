@@ -108,7 +108,7 @@ export default function VoiceCloningPage() {
     const rejected = currentRequests.filter((req: VoiceCloneRequest) => req.status === "rejected");
     
     if (approved.length > 0) {
-      const newClones: VoiceClone[] = approved.map((req) => ({
+    const newClones: VoiceClone[] = approved.map((req: VoiceCloneRequest) => ({
         id: req.id,
         name: req.name,
         relation: req.relation,
