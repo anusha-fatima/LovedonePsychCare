@@ -57,7 +57,7 @@ export function Hero() {
         <div className="lg:col-span-5 relative animate-fade-in">
           <div className="relative aspect-[5/6] rounded-[36px] overflow-hidden bg-midnight-50 shadow-soft">
             <Image
-              src="/brain-thread.png"
+              src="/Therapist-client-talking.png"
               alt="Calm illustration of unraveling thoughts"
               fill
               className="object-contain p-6"

@@ -10,6 +10,9 @@ import {
   ShieldCheck,
   Home,
   Settings,
+  Mic,
+  User,
+  
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useChat } from "@/context/ChatContext";
@@ -177,6 +180,8 @@ export default function UserChatPage() {
                 href="/psychologists"
                 className="rounded-2xl border border-ink-900/5 bg-cream/50 px-3 py-2 text-sm text-ink-700 hover:border-midnight-300"
               >
+                <User className="inline h-3.5 w-3.5 mr-1" />
+
                 Browse therapists
               </Link>
               <Link
@@ -192,6 +197,14 @@ export default function UserChatPage() {
                 <Settings className="inline h-3.5 w-3.5 mr-1" />
                 Get help
               </Link>
+              <Link
+  href="/dashboard/voice-cloning"
+  className="rounded-2xl border border-ink-900/5 bg-cream/50 px-3 py-2 text-sm text-ink-700 hover:border-midnight-300 font-sans"
+>
+  <Mic className="inline h-3.5 w-3.5 mr-1" />
+  Voice cloning
+</Link>
+
             </div>
           </div>
         </aside>

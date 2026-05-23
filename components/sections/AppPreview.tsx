@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Bot, UserRound } from "lucide-react";
+import { Bot, UserRound, Sparkles } from "lucide-react";
 
 type Sample = {
   id: string;
@@ -52,10 +52,10 @@ export function AppPreview() {
       <div className="container-page">
         <div className="max-w-2xl">
           <p className="eyebrow">Inside the app</p>
-          <h2 className="h-display text-4xl md:text-5xl">
+          <h2 className="h-display text-4xl md:text-5xl font-display">
             What a conversation feels like.
           </h2>
-          <p className="mt-4 text-ink-500 text-lg">
+          <p className="mt-4 text-ink-500 text-lg font-sans">
             One chat, two presences. Switch tabs below to peek at real-world
             moments from the app.
           </p>
@@ -67,7 +67,7 @@ export function AppPreview() {
               <button
                 key={s.id}
                 onClick={() => setActive(s.id)}
-                className={`text-left rounded-2xl px-4 py-3 text-sm font-semibold transition ${
+                className={`text-left rounded-2xl px-4 py-3 text-sm font-semibold transition font-sans ${
                   active === s.id
                     ? "bg-ink-900 text-white shadow-soft"
                     : "bg-white text-ink-700 border border-ink-900/5 hover:border-ink-900/15"
@@ -87,13 +87,13 @@ export function AppPreview() {
                       <Bot className="h-4 w-4" />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-ink-900">
+                      <p className="text-sm font-semibold text-ink-900 font-display">
                         Your conversation
                       </p>
-                      <p className="text-xs text-midnight-700">Online</p>
+                      <p className="text-xs text-midnight-700 font-sans">Online</p>
                     </div>
                   </div>
-                  <span className="chip">private</span>
+                  <span className="chip font-sans">private</span>
                 </div>
 
                 <div className="p-5 space-y-3 max-h-[440px] overflow-y-auto bg-cream/40">
@@ -101,7 +101,7 @@ export function AppPreview() {
                     if (m.from === "sys")
                       return (
                         <div key={i} className="text-center">
-                          <span className="inline-block text-[11px] uppercase tracking-wider text-ink-400 bg-white rounded-full px-3 py-1 border border-ink-900/5">
+                          <span className="inline-block text-[11px] uppercase tracking-wider text-ink-400 bg-white rounded-full px-3 py-1 border border-ink-900/5 font-sans">
                             {m.text}
                           </span>
                         </div>
@@ -122,15 +122,15 @@ export function AppPreview() {
                           }`}
                         >
                           {m.from === "th" && (
-                            <span className="block text-[10px] font-semibold uppercase tracking-wider text-midnight-800 mb-1">
+                            <span className="block text-[10px] font-semibold uppercase tracking-wider text-midnight-800 mb-1 font-sans">
                               <UserRound className="inline h-3 w-3 mr-1" />
                               Dr. Sarah Ahmed
                             </span>
                           )}
-                          {m.text}
+                          <span className="font-sans">{m.text}</span>
                           {m.time && (
                             <span
-                              className={`block text-[10px] mt-1 ${
+                              className={`block text-[10px] mt-1 font-sans ${
                                 mine ? "text-white/70" : "text-ink-400"
                               }`}
                             >
@@ -144,11 +144,22 @@ export function AppPreview() {
                 </div>
 
                 <div className="px-5 py-4 border-t border-ink-900/5 bg-white flex items-center gap-3">
-                  <div className="flex-1 h-10 rounded-full bg-cream border border-ink-900/5 px-4 grid place-items-start content-center text-sm text-ink-400">
+                  <div className="flex-1 h-10 rounded-full bg-cream border border-ink-900/5 px-4 grid place-items-start content-center text-sm text-ink-400 font-sans">
                     Write what's on your mind…
                   </div>
-                  <div className="h-10 px-4 rounded-full bg-midnight-600 text-white text-sm font-semibold grid place-items-center">
+                  <div className="h-10 px-4 rounded-full bg-midnight-600 text-white text-sm font-semibold grid place-items-center font-sans">
                     Send
+                  </div>
+                </div>
+
+                {/* Friendly Disclaimer */}
+                <div className="px-5 py-3 bg-cream/60 border-t border-ink-900/5">
+                  <div className="flex items-center justify-center gap-2">
+                    <Sparkles className="h-3.5 w-3.5 text-midnight-500" />
+                    <p className="text-xs text-ink-500 text-center font-sans">
+                      Sukoon is an AI support tool — here to listen and guide. 
+                      For urgent or complex concerns, our licensed therapists are just a tap away. 💙
+                    </p>
                   </div>
                 </div>
               </div>

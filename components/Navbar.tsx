@@ -60,9 +60,9 @@ export function Navbar() {
           <Image
             src="/logo.png"
             alt="LovedOne PsyCare"
-            width={140}
-            height={42}
-            className="h-9 md:h-11 w-auto object-contain"
+            width={180}
+            height={55}
+            className="h-11 md:h-14 w-auto object-contain"
             priority
           />
         </Link>

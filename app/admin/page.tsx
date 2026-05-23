@@ -18,6 +18,8 @@ import {
   UserX,
   Users,
   X,
+  Headphones,
+  Mic,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useChat } from "@/context/ChatContext";
@@ -33,7 +35,7 @@ import {
 } from "@/lib/store";
 import { ChatThread } from "@/components/chat/ChatThread";
 
-type Tab = "overview" | "therapists" | "chats" | "users";
+type Tab = "overview" | "therapists" | "chats" | "users" | "voice-clones";
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -41,6 +43,32 @@ export default function AdminDashboard() {
   const { conversations, messages } = useChat();
   const [tab, setTab] = useState<Tab>("overview");
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
+  const [voiceRequests, setVoiceRequests] = useState<any[]>([]);
+
+  // Load voice requests from localStorage
+  const loadVoiceRequests = () => {
+    if (typeof window === "undefined") return [];
+    const stored = localStorage.getItem("voiceCloneRequests");
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      setVoiceRequests(parsed);
+      return parsed;
+    }
+    return [];
+  };
+
+  useEffect(() => {
+    loadVoiceRequests();
+    
+    // Listen for storage changes (when user submits a new request)
+    const handleStorageChange = () => loadVoiceRequests();
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
+
+  const getPendingVoiceRequests = () => {
+    return voiceRequests.filter((req: any) => req.status === "pending");
+  };
 
   useEffect(() => {
     if (!ready) return;
@@ -79,6 +107,170 @@ export default function AdminDashboard() {
     ? messages.filter((m) => m.conversationId === selected.id)
     : [];
 
+  // Voice Clones Panel Component
+  const VoiceClonesPanel = () => {
+    const [localRequests, setLocalRequests] = useState<any[]>(voiceRequests);
+    const [view, setView] = useState<"pending" | "approved" | "rejected">("pending");
+    const [notification, setNotification] = useState<string | null>(null);
+
+    const refreshRequests = () => {
+      const stored = localStorage.getItem("voiceCloneRequests");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        setLocalRequests(parsed);
+        setVoiceRequests(parsed);
+      }
+    };
+
+    const showNotification = (msg: string) => {
+      setNotification(msg);
+      setTimeout(() => setNotification(null), 3000);
+    };
+
+    const handleApprove = (requestId: string) => {
+      const stored = localStorage.getItem("voiceCloneRequests");
+      if (stored) {
+        const requests = JSON.parse(stored);
+        const updated = requests.map((req: any) =>
+          req.id === requestId ? { ...req, status: "approved" } : req
+        );
+        localStorage.setItem("voiceCloneRequests", JSON.stringify(updated));
+        
+        // Force a storage event to notify other tabs/windows
+        window.dispatchEvent(new StorageEvent("storage", {
+          key: "voiceCloneRequests",
+          newValue: JSON.stringify(updated),
+          oldValue: stored,
+        }));
+        
+        refreshRequests();
+        showNotification("✅ Voice clone request approved!");
+      }
+    };
+
+    const handleReject = (requestId: string) => {
+      const stored = localStorage.getItem("voiceCloneRequests");
+      if (stored) {
+        const requests = JSON.parse(stored);
+        const updated = requests.map((req: any) =>
+          req.id === requestId ? { ...req, status: "rejected" } : req
+        );
+        localStorage.setItem("voiceCloneRequests", JSON.stringify(updated));
+        
+        // Force a storage event to notify other tabs/windows
+        window.dispatchEvent(new StorageEvent("storage", {
+          key: "voiceCloneRequests",
+          newValue: JSON.stringify(updated),
+          oldValue: stored,
+        }));
+        
+        refreshRequests();
+        showNotification("❌ Voice clone request rejected.");
+      }
+    };
+
+    const pendingRequests = localRequests.filter(r => r.status === "pending");
+    const approvedRequests = localRequests.filter(r => r.status === "approved");
+    const rejectedRequests = localRequests.filter(r => r.status === "rejected");
+
+    let currentList: any[] = [];
+    if (view === "pending") currentList = pendingRequests;
+    else if (view === "approved") currentList = approvedRequests;
+    else currentList = rejectedRequests;
+
+    return (
+      <div className="space-y-6">
+        {/* Notification */}
+        {notification && (
+          <div className="fixed top-20 right-4 z-50 rounded-2xl px-4 py-3 shadow-lg bg-green-600 text-white">
+            {notification}
+          </div>
+        )}
+
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => setView("pending")}
+            className={`rounded-full px-4 py-2 text-xs font-semibold ${
+              view === "pending"
+                ? "bg-ink-900 text-white"
+                : "bg-white border border-ink-900/10 text-ink-700"
+            }`}
+          >
+            Pending ({pendingRequests.length})
+          </button>
+          <button
+            onClick={() => setView("approved")}
+            className={`rounded-full px-4 py-2 text-xs font-semibold ${
+              view === "approved"
+                ? "bg-ink-900 text-white"
+                : "bg-white border border-ink-900/10 text-ink-700"
+            }`}
+          >
+            Approved ({approvedRequests.length})
+          </button>
+          <button
+            onClick={() => setView("rejected")}
+            className={`rounded-full px-4 py-2 text-xs font-semibold ${
+              view === "rejected"
+                ? "bg-ink-900 text-white"
+                : "bg-white border border-ink-900/10 text-ink-700"
+            }`}
+          >
+            Rejected ({rejectedRequests.length})
+          </button>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-4">
+          {currentList.length === 0 && (
+            <p className="text-sm text-ink-400 col-span-2">No voice clone requests.</p>
+          )}
+          {currentList.map((req) => (
+            <div key={req.id} className="card p-5">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <Mic className="h-5 w-5 text-midnight-600" />
+                    <p className="font-display text-xl text-ink-900">{req.name}</p>
+                  </div>
+                  <p className="text-xs text-ink-400 mt-1">{req.relation}</p>
+                  <p className="text-xs text-ink-400 mt-1">File: {req.audioFileName}</p>
+                </div>
+                <span className={`chip ${
+                  req.status === "pending" ? "bg-amber-50 text-amber-700" :
+                  req.status === "approved" ? "bg-green-50 text-green-700" :
+                  "bg-red-50 text-red-700"
+                }`}>
+                  {req.status}
+                </span>
+              </div>
+
+              <p className="mt-3 text-xs text-ink-400">
+                Requested: {new Date(req.requestedAt).toLocaleString()}
+              </p>
+
+              {req.status === "pending" && (
+                <div className="mt-4 flex gap-2">
+                  <button
+                    className="bg-green-600 hover:bg-green-700 text-white h-8 px-3 rounded-xl text-xs font-medium flex items-center gap-1 transition"
+                    onClick={() => handleApprove(req.id)}
+                  >
+                    <Check className="h-3.5 w-3.5" /> Approve
+                  </button>
+                  <button
+                    className="bg-red-600 hover:bg-red-700 text-white h-8 px-3 rounded-xl text-xs font-medium flex items-center gap-1 transition"
+                    onClick={() => handleReject(req.id)}
+                  >
+                    <X className="h-3.5 w-3.5" /> Reject
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-canvas">
       <header className="border-b border-ink-900/5 bg-white sticky top-0 z-30">
@@ -106,17 +298,16 @@ export default function AdminDashboard() {
           </div>
         </div>
         <nav className="container-page flex gap-1 pb-2 -mt-1 overflow-x-auto">
-          {(
-            [
-              { id: "overview", label: "Overview", icon: Activity },
-              { id: "therapists", label: "Therapists", icon: BadgeCheck, badge: pendingTherapists.length },
-              { id: "chats", label: "Conversations", icon: MessageSquare },
-              { id: "users", label: "Users", icon: Users },
-            ] as { id: Tab; label: string; icon: any; badge?: number }[]
-          ).map((t) => (
+          {[
+            { id: "overview", label: "Overview", icon: Activity },
+            { id: "therapists", label: "Therapists", icon: BadgeCheck, badge: pendingTherapists.length },
+            { id: "chats", label: "Conversations", icon: MessageSquare },
+            { id: "users", label: "Users", icon: Users },
+            { id: "voice-clones", label: "Voice Clones", icon: Headphones, badge: getPendingVoiceRequests().length },
+          ].map((t) => (
             <button
               key={t.id}
-              onClick={() => setTab(t.id)}
+              onClick={() => setTab(t.id as Tab)}
               className={`px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-2 shrink-0 ${
                 tab === t.id
                   ? "bg-ink-900 text-white"
@@ -183,6 +374,8 @@ export default function AdminDashboard() {
         {tab === "users" && (
           <UsersPanel users={users} conversations={conversations} />
         )}
+
+        {tab === "voice-clones" && <VoiceClonesPanel />}
       </div>
     </div>
   );
@@ -236,16 +429,16 @@ function Overview({
                   <p className="mt-2 text-xs text-ink-500 line-clamp-2">{t.therapist?.bio}</p>
                   <div className="mt-3 flex gap-2">
                     <button
-                      className="btn-primary h-8 px-3 text-xs"
+                      className="bg-green-600 hover:bg-green-700 text-white h-8 px-3 rounded-xl text-xs font-medium flex items-center gap-1 transition"
                       onClick={() => onApprove(t.id)}
                     >
-                      <Check className="h-4 w-4" /> Approve
+                      <Check className="h-3.5 w-3.5" /> Approve
                     </button>
                     <button
-                      className="btn-outline h-8 px-3 text-xs"
+                      className="bg-red-600 hover:bg-red-700 text-white h-8 px-3 rounded-xl text-xs font-medium flex items-center gap-1 transition"
                       onClick={() => onReject(t.id)}
                     >
-                      <X className="h-4 w-4" /> Reject
+                      <X className="h-3.5 w-3.5" /> Reject
                     </button>
                   </div>
                 </li>
@@ -277,7 +470,7 @@ function Overview({
                       </p>
                     </div>
                     <button
-                      className="btn-outline h-8 px-3 text-xs"
+                      className="border border-ink-900/10 hover:border-midnight-300 rounded-xl px-3 py-1.5 text-xs font-medium transition"
                       onClick={() => onOpenChat(c.id)}
                     >
                       Open
@@ -309,25 +502,36 @@ function TherapistsPanel({
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center gap-2">
-        {(
-          [
-            ["pending", `Pending (${pendingTherapists.length})`],
-            ["all", `All (${therapists.length})`],
-            ["suspended", `Suspended (${suspendedTherapists.length})`],
-          ] as [typeof view, string][]
-        ).map(([v, l]) => (
-          <button
-            key={v}
-            onClick={() => setView(v)}
-            className={`rounded-full px-4 py-2 text-xs font-semibold ${
-              view === v
-                ? "bg-ink-900 text-white"
-                : "bg-white border border-ink-900/10 text-ink-700"
-            }`}
-          >
-            {l}
-          </button>
-        ))}
+        <button
+          onClick={() => setView("pending")}
+          className={`rounded-full px-4 py-2 text-xs font-semibold ${
+            view === "pending"
+              ? "bg-ink-900 text-white"
+              : "bg-white border border-ink-900/10 text-ink-700"
+          }`}
+        >
+          Pending ({pendingTherapists.length})
+        </button>
+        <button
+          onClick={() => setView("all")}
+          className={`rounded-full px-4 py-2 text-xs font-semibold ${
+            view === "all"
+              ? "bg-ink-900 text-white"
+              : "bg-white border border-ink-900/10 text-ink-700"
+          }`}
+        >
+          All ({therapists.length})
+        </button>
+        <button
+          onClick={() => setView("suspended")}
+          className={`rounded-full px-4 py-2 text-xs font-semibold ${
+            view === "suspended"
+              ? "bg-ink-900 text-white"
+              : "bg-white border border-ink-900/10 text-ink-700"
+          }`}
+        >
+          Suspended ({suspendedTherapists.length})
+        </button>
       </div>
 
       <div className="grid md:grid-cols-2 gap-4">
@@ -385,34 +589,34 @@ function TherapistCard({ t }: { t: any }) {
       <div className="mt-5 flex flex-wrap gap-2">
         {status !== "approved" && (
           <button
-            className="btn-primary h-8 px-3 text-xs"
+            className="bg-green-600 hover:bg-green-700 text-white h-8 px-3 rounded-xl text-xs font-medium flex items-center gap-1 transition"
             onClick={() => approveTherapist(t.id)}
           >
-            <UserCheck className="h-4 w-4" />
+            <UserCheck className="h-3.5 w-3.5" />
             Approve
           </button>
         )}
         {status === "approved" && (
           <button
-            className="btn-outline h-8 px-3 text-xs"
+            className="border border-ink-900/10 hover:border-midnight-300 rounded-xl px-3 py-1.5 text-xs font-medium transition flex items-center gap-1"
             onClick={() => {
               const reason = prompt("Reason for suspension?") ?? "Account suspended.";
               suspendTherapist(t.id, reason);
             }}
           >
-            <UserX className="h-4 w-4" />
+            <UserX className="h-3.5 w-3.5" />
             Suspend
           </button>
         )}
         {status === "pending" && (
           <button
-            className="btn-outline h-8 px-3 text-xs"
+            className="border border-ink-900/10 hover:border-red-300 rounded-xl px-3 py-1.5 text-xs font-medium transition flex items-center gap-1 text-red-600"
             onClick={() => {
               const reason = prompt("Reason for rejection?") ?? "Application rejected.";
               rejectTherapist(t.id, reason);
             }}
           >
-            <X className="h-4 w-4" />
+            <X className="h-3.5 w-3.5" />
             Reject
           </button>
         )}
@@ -557,10 +761,9 @@ function ChatsPanel({
               <div className="flex flex-wrap items-center gap-2">
                 <button
                   onClick={() => setBotEnabled(selected.id, !selected.botEnabled)}
-                  className="btn-outline h-8 px-3 text-xs"
-                  title="Toggle AI guide"
+                  className="border border-ink-900/10 hover:border-midnight-300 rounded-xl px-3 py-1.5 text-xs font-medium transition flex items-center gap-1"
                 >
-                  <Bot className="h-4 w-4" />
+                  <Bot className="h-3.5 w-3.5" />
                   {selected.botEnabled ? "Pause AI" : "Enable AI"}
                 </button>
 
@@ -572,9 +775,9 @@ function ChatsPanel({
                         "Therapist removed from the conversation by admin."
                       )
                     }
-                    className="btn-outline h-8 px-3 text-xs"
+                    className="border border-ink-900/10 hover:border-red-300 rounded-xl px-3 py-1.5 text-xs font-medium transition flex items-center gap-1"
                   >
-                    <UserX className="h-4 w-4" />
+                    <UserX className="h-3.5 w-3.5" />
                     Remove therapist
                   </button>
                 )}
@@ -587,17 +790,17 @@ function ChatsPanel({
                         "This conversation has been closed by an administrator."
                       )
                     }
-                    className="btn h-8 px-3 text-xs bg-red-50 text-red-700 ring-1 ring-red-200 hover:bg-red-100"
+                    className="bg-red-600 hover:bg-red-700 text-white h-8 px-3 rounded-xl text-xs font-medium flex items-center gap-1 transition"
                   >
-                    <Power className="h-4 w-4" />
+                    <Power className="h-3.5 w-3.5" />
                     Terminate
                   </button>
                 ) : (
                   <button
                     onClick={() => resumeConversation(selected.id)}
-                    className="btn-primary h-8 px-3 text-xs"
+                    className="bg-green-600 hover:bg-green-700 text-white h-8 px-3 rounded-xl text-xs font-medium flex items-center gap-1 transition"
                   >
-                    <Power className="h-4 w-4" />
+                    <Power className="h-3.5 w-3.5" />
                     Reopen
                   </button>
                 )}
@@ -627,7 +830,7 @@ function ChatsPanel({
                 placeholder="Send a system note as Admin…"
                 className="input"
               />
-              <button className="btn-secondary h-11 px-4" type="submit">
+              <button className="bg-ink-900 hover:bg-midnight-800 text-white h-11 px-4 rounded-xl text-sm font-medium transition" type="submit">
                 Send
               </button>
             </form>
