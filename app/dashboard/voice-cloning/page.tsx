@@ -91,12 +91,12 @@ export default function VoiceCloningPage() {
     setTimeout(() => setNotification(null), 4000);
   };
 
-  // Check for approvals function
+  // Check for approvals function - FIXED with proper types
   const checkForApprovals = useCallback(() => {
     const savedRequests = localStorage.getItem("voiceCloneRequests");
     if (!savedRequests) return;
     
-    const currentRequests = JSON.parse(savedRequests).map((req: any) => ({
+    const currentRequests: VoiceCloneRequest[] = JSON.parse(savedRequests).map((req: any) => ({
       ...req,
       requestedAt: new Date(req.requestedAt),
     }));
@@ -104,11 +104,11 @@ export default function VoiceCloningPage() {
     // Sync current requests state
     setPendingRequests(currentRequests);
     
-    const approved = currentRequests.filter((req: VoiceCloneRequest) => req.status === "approved");
-    const rejected = currentRequests.filter((req: VoiceCloneRequest) => req.status === "rejected");
+    const approved: VoiceCloneRequest[] = currentRequests.filter((req: VoiceCloneRequest) => req.status === "approved");
+    const rejected: VoiceCloneRequest[] = currentRequests.filter((req: VoiceCloneRequest) => req.status === "rejected");
     
     if (approved.length > 0) {
-    const newClones: VoiceClone[] = approved.map((req: VoiceCloneRequest) => ({
+      const newClones: VoiceClone[] = approved.map((req: VoiceCloneRequest) => ({
         id: req.id,
         name: req.name,
         relation: req.relation,
@@ -118,13 +118,13 @@ export default function VoiceCloningPage() {
         status: "active",
       }));
       
-      setVoiceClones((prev) => {
-        const existingIds = new Set(prev.map(c => c.id));
-        const uniqueNewClones = newClones.filter(c => !existingIds.has(c.id));
+      setVoiceClones((prev: VoiceClone[]) => {
+        const existingIds = new Set(prev.map((c: VoiceClone) => c.id));
+        const uniqueNewClones = newClones.filter((c: VoiceClone) => !existingIds.has(c.id));
         const updated = [...prev, ...uniqueNewClones];
         
         // Save to localStorage so it persists safely
-        localStorage.setItem("userVoiceClones", JSON.stringify(updated.map(c => ({
+        localStorage.setItem("userVoiceClones", JSON.stringify(updated.map((c: VoiceClone) => ({
           ...c,
           createdAt: c.createdAt.toISOString(),
           expiresAt: c.expiresAt.toISOString(),
@@ -134,7 +134,7 @@ export default function VoiceCloningPage() {
       });
       
       // Clean up requests: Remove approved requests completely out of the pipeline
-      const approvedIds = new Set(approved.map(r => r.id));
+      const approvedIds = new Set(approved.map((r: VoiceCloneRequest) => r.id));
       const remainingRequests = currentRequests.filter((req: VoiceCloneRequest) => !approvedIds.has(req.id));
       localStorage.setItem("voiceCloneRequests", JSON.stringify(remainingRequests));
       setPendingRequests(remainingRequests);
@@ -155,7 +155,7 @@ export default function VoiceCloningPage() {
     }
     
     if (rejected.length > 0) {
-      const rejectedIds = new Set(rejected.map(r => r.id));
+      const rejectedIds = new Set(rejected.map((r: VoiceCloneRequest) => r.id));
       const remainingRequests = currentRequests.filter((req: VoiceCloneRequest) => !rejectedIds.has(req.id));
       localStorage.setItem("voiceCloneRequests", JSON.stringify(remainingRequests));
       setPendingRequests(remainingRequests);
@@ -175,7 +175,11 @@ export default function VoiceCloningPage() {
       })));
     } else {
       // If nothing exists in storage yet, save our default hardcoded items so they stick around
-      localStorage.setItem("userVoiceClones", JSON.stringify(INITIAL_CLONES));
+      localStorage.setItem("userVoiceClones", JSON.stringify(INITIAL_CLONES.map((c: VoiceClone) => ({
+        ...c,
+        createdAt: c.createdAt.toISOString(),
+        expiresAt: c.expiresAt.toISOString(),
+      }))));
     }
     
     const savedRequests = localStorage.getItem("voiceCloneRequests");
@@ -259,7 +263,7 @@ export default function VoiceCloningPage() {
     };
 
     const existingRequests = localStorage.getItem("voiceCloneRequests");
-    let updatedRequests = [];
+    let updatedRequests: VoiceCloneRequest[] = [];
     if (existingRequests) {
       updatedRequests = [...JSON.parse(existingRequests), newRequest];
     } else {
@@ -279,9 +283,9 @@ export default function VoiceCloningPage() {
   };
 
   const handleDeleteClone = (id: string) => {
-    const updated = voiceClones.filter((clone) => clone.id !== id);
+    const updated = voiceClones.filter((clone: VoiceClone) => clone.id !== id);
     setVoiceClones(updated);
-    localStorage.setItem("userVoiceClones", JSON.stringify(updated.map(c => ({
+    localStorage.setItem("userVoiceClones", JSON.stringify(updated.map((c: VoiceClone) => ({
       ...c,
       createdAt: c.createdAt.toISOString(),
       expiresAt: c.expiresAt.toISOString(),
@@ -293,7 +297,7 @@ export default function VoiceCloningPage() {
     setPlayingCloneId(playingCloneId === id ? null : id);
   };
 
-  const waitingForApproval = pendingRequests.filter(req => req.status === "pending").length;
+  const waitingForApproval = pendingRequests.filter((req: VoiceCloneRequest) => req.status === "pending").length;
 
   return (
     <div className="h-screen flex flex-col bg-canvas">
@@ -393,7 +397,6 @@ export default function VoiceCloningPage() {
                 <MessageCircle className="inline h-3.5 w-3.5 mr-1" />
                 Chat with Sukoon
               </Link>
-             
               <Link
                 href="/psychologists"
                 className="rounded-2xl border border-ink-900/5 bg-cream/50 px-3 py-2 text-sm text-ink-700 hover:border-midnight-300 font-sans"
@@ -514,7 +517,7 @@ export default function VoiceCloningPage() {
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {voiceClones.map((clone) => (
+                    {voiceClones.map((clone: VoiceClone) => (
                       <div
                         key={clone.id}
                         className="card p-4 hover:bg-cream/30 transition"
